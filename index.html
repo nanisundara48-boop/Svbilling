@@ -3,21 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Professional Billing App</title>
+  <title>Sri Venkateswara - Advanced Billing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
   <style>
-    /* 🌟 GLASSMORPHISM & THEME 🌟 */
+    /* --- FUTURISTIC THEME & VARIABLES --- */
     :root {
-      --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --glass-bg: rgba(255, 255, 255, 0.15);
-      --glass-border: rgba(255, 255, 255, 0.3);
-      --text-color: #fff;
-    }
-
-    body.dark-mode {
-      --bg-gradient: linear-gradient(135deg, #1a2a6c 0%, #112 100%);
-      --glass-bg: rgba(0, 0, 0, 0.4);
+      --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --glass-bg: rgba(255, 255, 255, 0.05);
       --glass-border: rgba(255, 255, 255, 0.1);
-      --text-color: #e0e0e0;
+      --text-color: #ffffff;
+      --primary: #00e5ff;
+      --primary-hover: #00b3cc;
+      --danger: #ff4b2b;
+      --success: #00b09b;
     }
 
     body {
@@ -28,133 +26,203 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      transition: background 0.5s;
+      align-items: flex-start;
+      padding: 20px;
+      overflow-x: hidden;
     }
 
-    .glass-panel {
+    /* --- ANIMATIONS --- */
+    @keyframes slideIn {
+      0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 550px;
+      animation: slideIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+
+    /* --- GLASSMORPHISM CARDS --- */
+    .glass-card {
       background: var(--glass-bg);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
       border: 1px solid var(--glass-border);
       border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-      width: 90%;
-      max-width: 800px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover { box-shadow: 0 15px 50px rgba(0, 229, 255, 0.15); }
+
+    /* --- ACCORDION (TAP TO EXPAND) --- */
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 10px 0;
+      transition: color 0.3s ease;
+    }
+    .accordion-header:hover { color: var(--primary); }
+    .accordion-header::after {
+      content: '▼';
+      font-size: 0.8rem;
+      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .accordion-header.active::after { transform: rotate(180deg); color: var(--primary); }
+    .accordion-header.active { border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 15px; }
+
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.6s cubic-bezier(0, 1, 0, 1), opacity 0.5s ease;
+    }
+    .accordion-content.show {
+      max-height: 1200px;
+      opacity: 1;
+      transition: max-height 0.8s ease-in-out, opacity 0.6s ease-in-out;
     }
 
-    h2, h3 { text-align: center; margin-top: 0; }
-
-    input, button, select {
+    /* --- INPUTS & BUTTONS --- */
+    input, select, button {
       width: 100%;
       margin: 10px 0;
-      padding: 12px;
-      border-radius: 8px;
+      padding: 15px;
+      border-radius: 12px;
       border: none;
       outline: none;
+      font-family: 'Poppins', sans-serif;
       box-sizing: border-box;
+      transition: all 0.3s ease;
+      font-size: 1rem;
     }
 
     input, select {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.08);
       color: var(--text-color);
-      border: 1px solid var(--glass-border);
+      border: 1px solid rgba(255, 255, 255, 0.15);
     }
-    input::placeholder { color: #ddd; }
-    select option { background: #764ba2; color: white; }
+    input:focus, select:focus { 
+      border-color: var(--primary); 
+      background: rgba(255, 255, 255, 0.12); 
+      box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+    }
+    input::placeholder { color: #a0a0a0; }
+    select option { background: #1a2a3a; color: white; }
 
     button {
-      background: #4facfe;
-      color: white;
-      font-weight: bold;
+      background: var(--primary);
+      color: #0f2027;
+      font-weight: 600;
       cursor: pointer;
-      transition: 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
-    button:hover { background: #00f2fe; }
+    button:hover { 
+      background: var(--primary-hover);
+      transform: translateY(-2px); 
+      box-shadow: 0 5px 20px rgba(0, 229, 255, 0.4); 
+    }
     
-    .btn-danger { background: #ff4b2b; }
-    .btn-danger:hover { background: #ff416c; }
-    .btn-success { background: #00b09b; }
-    .btn-success:hover { background: #96c93d; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-danger:hover { background: #ff3314; box-shadow: 0 5px 20px rgba(255, 75, 43, 0.4); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-success:hover { background: #008f7e; box-shadow: 0 5px 20px rgba(0, 176, 155, 0.4); }
 
-    /* Layout Grids */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    
-    /* Lists */
-    .item-list {
-      margin-top: 15px;
-      background: rgba(0,0,0,0.2);
-      padding: 15px;
-      border-radius: 10px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
+    /* --- LIST ITEMS --- */
     .item-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
+      background: rgba(0,0,0,0.25);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      animation: slideIn 0.3s ease forwards;
+      border: 1px solid rgba(255,255,255,0.05);
     }
-    .action-btns button { width: auto; padding: 5px 10px; margin: 0 2px; font-size: 12px; }
+    .action-btns button { width: auto; padding: 8px 15px; margin-left: 8px; font-size: 0.9rem; }
 
     #dashboard { display: none; }
-    .nav-bar { display: flex; justify-content: space-between; margin-bottom: 20px; }
-    .nav-bar button { width: auto; padding: 8px 15px; }
+    
+    /* --- CUSTOM SCROLLBAR --- */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
   </style>
 </head>
 <body>
 
-  <div class="glass-panel" id="auth-section" style="max-width: 400px;">
-    <h2 id="auth-title">Login</h2>
-    <input type="email" id="email" placeholder="Email Address">
-    <input type="password" id="password" placeholder="Password">
-    <button id="auth-btn" onclick="handleAuth()">Login</button>
-    <p style="text-align:center; font-size: 14px; cursor: pointer; text-decoration: underline;" onclick="toggleAuthMode()" id="toggle-txt">New user? Create Account</p>
-  </div>
-
-  <div class="glass-panel" id="dashboard">
-    <div class="nav-bar">
-      <h3>Store Dashboard</h3>
-      <div>
-        <button onclick="toggleTheme()">🌓 Theme</button>
-        <button class="btn-danger" onclick="logout()">Logout</button>
-      </div>
+  <div class="app-container">
+    
+    <div class="glass-card" id="auth-section">
+      <h2 id="auth-title" style="text-align: center; margin-top: 0;">Welcome Back 🚀</h2>
+      <p style="text-align: center; color: #ccc; font-size: 0.9rem;">Sign in to manage your store securely</p>
+      <input type="email" id="email" placeholder="📧 Email Address">
+      <input type="password" id="password" placeholder="🔒 Password">
+      <button id="auth-btn" onclick="handleAuth()">Login</button>
+      <p style="text-align:center; font-size: 14px; cursor: pointer; color: var(--primary); margin-top: 20px; transition: 0.3s;" onclick="toggleAuthMode()" id="toggle-txt">New User? Tap to Register</p>
     </div>
 
-    <div class="grid-2">
-      <div>
-        <h3>Manage Products</h3>
-        <input type="text" id="prod-name" placeholder="Product Name (e.g. Polyking)">
-        <input type="number" id="prod-price" placeholder="Price per Kg (₹)">
-        <button onclick="saveProduct()">➕ Add Product</button>
-        <div class="item-list" id="products-list">Loading products...</div>
+    <div id="dashboard">
+      <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+        <div>
+          <h2 style="margin: 0; font-size: 1.5rem;">Dashboard ✨</h2>
+          <small style="color: #aaa;" id="user-display-email">User</small>
+        </div>
+        <button class="btn-danger" style="width: auto; padding: 10px 20px;" onclick="logout()">Logout</button>
       </div>
 
-      <div>
-        <h3>New Bill</h3>
-        <input type="text" id="cust-name" placeholder="Customer Name">
-        <input type="number" id="cust-phone" placeholder="WhatsApp Number (10 digits)">
-        
-        <select id="select-product"></select>
-        <input type="number" id="qty" placeholder="Quantity (Kg)" step="0.01">
-        <button class="btn-success" onclick="addToCart()">🛒 Add to Bill</button>
-        
-        <div class="item-list" id="cart-list">Cart is empty</div>
-        <h3 style="text-align: right;">Total: ₹<span id="total-amount">0</span></h3>
-        <button onclick="sendWhatsAppBill()">📲 Send Bill via WhatsApp</button>
+      <div class="glass-card">
+        <div class="accordion-header" onclick="toggleAccordion('products-content', this)">📦 Manage Products</div>
+        <div class="accordion-content" id="products-content">
+          <input type="text" id="prod-name" placeholder="🏷️ Product Name (e.g., Polyking)">
+          <input type="number" id="prod-price" placeholder="💵 Price per Kg (₹)">
+          <button onclick="saveProduct()">➕ Save Product</button>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Your Inventory</h4>
+          <div id="products-list"><i>Loading...</i></div>
+        </div>
       </div>
+
+      <div class="glass-card">
+        <div class="accordion-header active" onclick="toggleAccordion('billing-content', this)">🧾 Create New Bill</div>
+        <div class="accordion-content show" id="billing-content">
+          <input type="text" id="cust-name" placeholder="👤 Customer Name">
+          <input type="number" id="cust-phone" placeholder="📞 WhatsApp Number (10 digits)">
+          
+          <select id="select-product">
+            <option value="">-- Select Product --</option>
+          </select>
+          <input type="number" id="qty" placeholder="⚖️ Quantity (Kg)" step="0.01">
+          <button class="btn-success" onclick="addToCart()">🛒 Add to Cart</button>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Cart Items</h4>
+          <div id="cart-list" style="margin-bottom: 15px; color: #ccc;"><i>Cart is empty</i></div>
+          
+          <div style="background: rgba(0, 229, 255, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.3); margin-bottom: 15px;">
+            <h3 style="margin: 0; text-align: right; color: var(--primary);">Total: ₹<span id="total-amount">0.00</span></h3>
+          </div>
+          
+          <button style="background: #25D366; color: white;" onclick="sendWhatsAppBill()">📲 Send Bill + UPI on WhatsApp</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
 <script type="module">
-  // 1. Firebase SDK Imports
+  // --- 1. FIREBASE SETUP ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  // 2. Firebase Configuration
   const firebaseConfig = {
     apiKey: "AIzaSyDMSGPEngVmGtTRfcnIC4unH7Rh3FwgcRE",
     authDomain: "sv-billing-250c2.firebaseapp.com",
@@ -164,38 +232,45 @@
     appId: "1:847927101892:web:800c182fe47f133d537c91"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // Global Variables
+  // --- 2. GLOBAL VARIABLES ---
   let isLoginMode = true;
   let currentUserId = null;
   let cart = [];
   let cartTotal = 0;
 
-  // --- UI TOGGLES ---
-  window.toggleTheme = () => document.body.classList.toggle('dark-mode');
-  
-  window.toggleAuthMode = () => {
-    isLoginMode = !isLoginMode;
-    document.getElementById('auth-title').innerText = isLoginMode ? "Login" : "Register";
-    document.getElementById('auth-btn').innerText = isLoginMode ? "Login" : "Create Account";
-    document.getElementById('toggle-txt').innerText = isLoginMode ? "New user? Create Account" : "Already have an account? Login";
+  // --- 3. UI INTERACTIONS ---
+  window.toggleAccordion = (contentId, headerElement) => {
+    const content = document.getElementById(contentId);
+    content.classList.toggle('show');
+    headerElement.classList.toggle('active');
   };
 
-  // --- AUTHENTICATION ---
-  window.handleAuth = () => {
+  window.toggleAuthMode = () => {
+    isLoginMode = !isLoginMode;
+    document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back 🚀" : "Create Account ✨";
+    document.getElementById('auth-btn').innerText = isLoginMode ? "Login" : "Register";
+    document.getElementById('toggle-txt').innerText = isLoginMode ? "New User? Tap to Register" : "Have an account? Tap to Login";
+  };
+
+  // --- 4. AUTHENTICATION ---
+  window.handleAuth = async () => {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    if(!email || !password) return alert("Please enter email and password");
+    if(!email || !password) return alert("⚠️ Please enter valid email and password");
 
-    const authPromise = isLoginMode 
-      ? signInWithEmailAndPassword(auth, email, password)
-      : createUserWithEmailAndPassword(auth, email, password);
-
-    authPromise.catch(error => alert("Error: " + error.message));
+    try {
+      if(isLoginMode) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch(error) {
+      alert("❌ Error: " + error.message);
+    }
   };
 
   window.logout = () => signOut(auth);
@@ -205,7 +280,8 @@
       currentUserId = user.uid;
       document.getElementById('auth-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      loadProducts(); // Load ONLY this user's data
+      document.getElementById('user-display-email').innerText = user.email;
+      loadProducts(); 
     } else {
       currentUserId = null;
       document.getElementById('auth-section').style.display = 'block';
@@ -213,70 +289,77 @@
     }
   });
 
-  // --- PRODUCTS CRUD (Evari data vallake) ---
+  // --- 5. PRODUCT MANAGEMENT ---
   window.saveProduct = async () => {
-    const name = document.getElementById('prod-name').value;
+    const name = document.getElementById('prod-name').value.trim();
     const price = parseFloat(document.getElementById('prod-price').value);
     
-    if(!name || !price) return alert("Enter Product Name and Price!");
+    if(!name || !price) return alert("⚠️ Enter Product Name and Price!");
 
-    await addDoc(collection(db, "products"), {
-      userId: currentUserId,
-      name: name,
-      price: price
-    });
+    const btn = event.target;
+    btn.innerText = "Saving...";
     
-    document.getElementById('prod-name').value = '';
-    document.getElementById('prod-price').value = '';
-    loadProducts();
+    try {
+      await addDoc(collection(db, "products"), { userId: currentUserId, name: name, price: price });
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      loadProducts();
+    } catch(error) {
+      alert("❌ Failed to save! Check Firebase Rules.");
+    } finally {
+      btn.innerText = "➕ Save Product";
+    }
   };
 
   window.loadProducts = async () => {
-    const q = query(collection(db, "products"), where("userId", "==", currentUserId));
-    const snapshot = await getDocs(q);
-    
-    let html = '';
-    let optionsHtml = '<option value="">-- Select Product --</option>';
-    
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      html += `
-        <div class="item-row">
-          <span>${p.name} (₹${p.price})</span>
-          <div class="action-btns">
-            <button onclick="editProduct('${doc.id}', '${p.name}', ${p.price})">✏️</button>
-            <button class="btn-danger" onclick="deleteProduct('${doc.id}')">🗑️</button>
-          </div>
-        </div>`;
-      optionsHtml += `<option value='{"name":"${p.name}", "price":${p.price}}'>${p.name} - ₹${p.price}</option>`;
-    });
+    try {
+      const q = query(collection(db, "products"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      
+      let html = '';
+      let optionsHtml = '<option value="">-- Select Product --</option>';
+      
+      if(snapshot.empty) {
+        document.getElementById('products-list').innerHTML = "<span style='color:#ccc;'>No products found. Add one above!</span>";
+        document.getElementById('select-product').innerHTML = optionsHtml;
+        return;
+      }
 
-    document.getElementById('products-list').innerHTML = html || "No products added yet.";
-    document.getElementById('select-product').innerHTML = optionsHtml;
-  };
+      snapshot.forEach(doc => {
+        const p = doc.data();
+        html += `
+          <div class="item-row">
+            <div>
+              <div style="font-weight: 600; font-size: 1.1rem;">📦 ${p.name}</div>
+              <div style="color: var(--primary); font-size: 0.9rem;">₹${p.price} / kg</div>
+            </div>
+            <div class="action-btns">
+              <button class="btn-danger" onclick="deleteProduct('${doc.id}')">🗑️ Delete</button>
+            </div>
+          </div>`;
+        optionsHtml += `<option value='{"name":"${p.name}", "price":${p.price}}'>${p.name} - ₹${p.price}/kg</option>`;
+      });
 
-  window.editProduct = async (id, oldName, oldPrice) => {
-    const newName = prompt("Edit Name:", oldName);
-    const newPrice = prompt("Edit Price:", oldPrice);
-    if(newName && newPrice) {
-      await updateDoc(doc(db, "products", id), { name: newName, price: parseFloat(newPrice) });
-      loadProducts();
+      document.getElementById('products-list').innerHTML = html;
+      document.getElementById('select-product').innerHTML = optionsHtml;
+    } catch (error) {
+      document.getElementById('products-list').innerHTML = "<span style='color:red;'>Failed to load.</span>";
     }
   };
 
   window.deleteProduct = async (id) => {
-    if(confirm("Are you sure you want to delete this product?")) {
+    if(confirm("🗑️ Are you sure you want to delete this product?")) {
       await deleteDoc(doc(db, "products", id));
       loadProducts();
     }
   };
 
-  // --- BILLING / CART LOGIC ---
+  // --- 6. BILLING & CART LOGIC ---
   window.addToCart = () => {
     const prodVal = document.getElementById('select-product').value;
     const qty = parseFloat(document.getElementById('qty').value);
     
-    if(!prodVal || !qty) return alert("Select product and enter quantity!");
+    if(!prodVal || !qty) return alert("⚠️ Select a product and enter quantity!");
     
     const product = JSON.parse(prodVal);
     const itemTotal = product.price * qty;
@@ -291,28 +374,33 @@
     cart.forEach((item, index) => {
       cartTotal += item.total;
       html += `
-        <div class="item-row">
-          <span>${item.name} (${item.qty}kg)</span>
-          <span>₹${item.total.toFixed(2)}</span>
+        <div class="item-row" style="padding: 10px 15px;">
+          <span>✔️ ${item.name} (${item.qty}kg)</span>
+          <span style="font-weight:bold; color: var(--primary);">₹${item.total.toFixed(2)}</span>
         </div>`;
     });
-    document.getElementById('cart-list').innerHTML = html || "Cart is empty";
+    document.getElementById('cart-list').innerHTML = html || "<i>Cart is empty</i>";
     document.getElementById('total-amount').innerText = cartTotal.toFixed(2);
   }
 
-  // --- PERFECT WHATSAPP BILL (NO ? MARKS) ---
+  // --- 7. WHATSAPP & UPI INTEGRATION ---
   window.sendWhatsAppBill = () => {
-    const custName = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
+    const custName = document.getElementById('cust-name').value.trim();
+    const phone = document.getElementById('cust-phone').value.trim();
     
     if(!custName || phone.length < 10 || cart.length === 0) {
-      return alert("Enter customer details and add items to cart!");
+      return alert("⚠️ Enter valid customer details and add items to cart!");
     }
 
     const date = new Date().toLocaleDateString('en-IN');
     const time = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-    let msg = `🧾 *SRI VENKATESWARA*\n📞 7997195592\n\n`;
+    // 🔴 MEE UPI DETAILS IKKADA UNNAYI
+    const myUpiId = "7997195592@ybl"; 
+    const myStoreName = "Sri Venkateswara";
+
+    // 📝 PROFESSIONAL MESSAGE TEMPLATE
+    let msg = `🧾 *${myStoreName.toUpperCase()}*\n📞 7997195592\n\n`;
     msg += `👤 *Customer:* ${custName}\n`;
     msg += `📅 *Date:* ${date} | ⏰ *Time:* ${time}\n`;
     msg += `----------------------------------\n`;
@@ -324,21 +412,30 @@
 
     msg += `----------------------------------\n`;
     msg += `💰 *TOTAL AMOUNT : ₹${cartTotal.toFixed(2)}*\n`;
-    msg += `----------------------------------\n`;
-    msg += `⏳ * Pay the bill within 15 days *\n\n🙏 Thank you! Visit Again!`;
+    msg += `----------------------------------\n\n`;
+    
+    // 🔗 GENERATING UPI DEEP LINK
+    const upiNote = encodeURIComponent(`Bill Payment from ${custName}`);
+    const encodedStoreName = encodeURIComponent(myStoreName);
+    const upiLink = `upi://pay?pa=${myUpiId}&pn=${encodedStoreName}&am=${cartTotal.toFixed(2)}&cu=INR&tn=${upiNote}`;
 
-    // Encode URI Component removes the ? marks issue
+    msg += `⚡ *Tap the link below to Pay securely via PhonePe, GPay, or Paytm:*\n`;
+    msg += `${upiLink}\n\n`;
+    msg += `⏳ *Pay the bill within 15 days*\n\n🙏 Thank you! Visit Again!`;
+
+    // SEND TO WHATSAPP
     const encodedMsg = encodeURIComponent(msg);
     const whatsappUrl = `https://wa.me/91${phone}?text=${encodedMsg}`;
     
     window.open(whatsappUrl, '_blank');
     
-    // Clear cart after sending
+    // RESET CART AFTER SENDING
     cart = []; updateCartUI();
     document.getElementById('qty').value = '';
+    document.getElementById('cust-name').value = '';
+    document.getElementById('cust-phone').value = '';
   };
 
 </script>
 </body>
 </html>
-
