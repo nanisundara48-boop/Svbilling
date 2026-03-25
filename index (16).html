@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sri Venkateswara - Advanced Billing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* --- FUTURISTIC THEME & VARIABLES --- */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-color: #ffffff;
+      --primary: #00e5ff;
+      --primary-hover: #00b3cc;
+      --danger: #ff4b2b;
+      --success: #00b09b;
+      --warning: #ffb100;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      overflow-x: hidden;
+      transition: all 0.5s ease;
+    }
+
+    /* --- ANIMATIONS --- */
+    @keyframes slideIn {
+      0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 550px; /* Default Portrait */
+      animation: slideIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+      transition: max-width 0.5s ease;
+    }
+
+    /* Landscape Toggle Class */
+    .app-container.landscape {
+      max-width: 95%;
+    }
+
+    /* --- TOP HEADER & ICONS --- */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .header-icons {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      font-size: 1.2rem;
+    }
+    .icon-btn { cursor: pointer; transition: 0.3s; }
+    .icon-btn:hover { color: var(--primary); transform: scale(1.1); }
+
+    /* Search Bar */
+    .search-box {
+      flex-grow: 1;
+      margin: 0 15px;
+      position: relative;
+    }
+    .search-box input { margin: 0; padding: 10px 15px; }
+    .search-results {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: #1a2a3a;
+      border: 1px solid var(--primary);
+      border-radius: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+    .search-results div { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+    .search-results div:hover { background: rgba(0,229,255,0.2); }
+
+    /* 3 Dots Menu */
+    .more-menu {
+      position: absolute;
+      top: 50px; right: 10px;
+      background: #1a2a3a;
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      z-index: 100;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .more-menu button {
+      background: transparent;
+      margin: 0;
+      padding: 10px 20px;
+      border-radius: 0;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    .more-menu button:hover { background: rgba(255,255,255,0.1); }
+
+    /* --- GLASSMORPHISM CARDS --- */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    /* --- ACCORDION --- */
+    .accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 10px 0;
+      transition: color 0.3s ease;
+    }
+    .accordion-header:hover { color: var(--primary); }
+    .accordion-header::after { content: '▼'; font-size: 0.8rem; transition: transform 0.4s; }
+    .accordion-header.active::after { transform: rotate(180deg); color: var(--primary); }
+    .accordion-header.active { border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 15px; }
+
+    .accordion-content {
+      max-height: 0; overflow: hidden; opacity: 0;
+      transition: max-height 0.6s ease, opacity 0.5s ease;
+    }
+    .accordion-content.show {
+      max-height: 2000px; opacity: 1;
+    }
+
+    /* --- INPUTS & BUTTONS --- */
+    input, select, button {
+      width: 100%; margin: 10px 0; padding: 15px;
+      border-radius: 12px; border: none; outline: none;
+      font-family: 'Poppins', sans-serif; box-sizing: border-box;
+      transition: all 0.3s ease; font-size: 1rem;
+    }
+
+    input, select {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-color); border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    input:focus, select:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.12); }
+    input::placeholder { color: #a0a0a0; }
+    select option { background: #1a2a3a; color: white; }
+
+    button { background: var(--primary); color: #0f2027; font-weight: 600; cursor: pointer; }
+    button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-warning { background: var(--warning); color: #000; }
+
+    /* --- PRODUCT GRID (Icons) --- */
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+    .product-icon-card {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 15px 10px;
+      text-align: center;
+      position: relative;
+      transition: 0.3s;
+    }
+    .product-icon-card:hover { border-color: var(--primary); }
+    .product-icon-card .edit-btn {
+      position: absolute; top: 5px; right: 5px;
+      background: transparent; padding: 0; width: auto; margin: 0;
+      font-size: 1.2rem; cursor: pointer; color: #fff;
+    }
+    .product-icon-card .icon-img { font-size: 2.5rem; margin-bottom: 5px; }
+    .product-icon-card .p-name { font-weight: 600; font-size: 1rem; }
+    .product-icon-card .p-price { color: var(--primary); font-size: 0.9rem; margin-top: 5px; }
+
+    /* --- TOGGLE SWITCH (Paid/Unpaid) --- */
+    .switch {
+      position: relative; display: inline-block; width: 60px; height: 30px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--danger); transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 22px; width: 22px;
+      left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider:before { transform: translateX(30px); }
+
+    /* --- TABLES FOR BILLS --- */
+    .bill-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+    .bill-table th, .bill-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+    .bill-table th { color: var(--primary); }
+    .action-row { display: flex; align-items: center; gap: 10px; }
+    .urgent-row { background: rgba(255, 75, 43, 0.2); } /* Red tint for 5-day due */
+
+    #dashboard { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container" id="app-container">
+    
+    <div class="glass-card" id="auth-section">
+      <h2 id="auth-title" style="text-align: center; margin-top: 0;">Welcome Back 🚀</h2>
+      <p style="text-align: center; color: #ccc; font-size: 0.9rem;">Sign in to manage your store securely</p>
+      <input type="email" id="email" placeholder="📧 Email Address">
+      <input type="password" id="password" placeholder="🔒 Password">
+      <button id="auth-btn" onclick="handleAuth()">Login</button>
+      <p style="text-align:center; font-size: 14px; cursor: pointer; color: var(--primary); margin-top: 20px;" onclick="toggleAuthMode()" id="toggle-txt">New User? Tap to Register</p>
+    </div>
+
+    <div id="dashboard">
+      
+      <div class="top-header">
+        <div class="header-icons">
+          <span class="icon-btn" onclick="toggleOrientation()" title="Landscape/Portrait">🔄📱</span>
+          <span class="icon-btn" title="User Profile">👤</span>
+        </div>
+        
+        <div class="search-box">
+          <input type="text" id="global-search" placeholder="🔍 Search Users/Products (2+ letters)..." onkeyup="handleGlobalSearch()">
+          <div class="search-results" id="search-results"></div>
+        </div>
+
+        <div class="header-icons">
+          <span class="icon-btn" onclick="toggleMenu()" title="More Options">⋮</span>
+        </div>
+
+        <div class="more-menu" id="more-menu">
+          <button onclick="alert('Feature Coming Soon!')">💸 Expense Tracking</button>
+          <button onclick="alert('Feature Coming Soon!')">📊 Sales Report</button>
+          <button onclick="alert('Feature Coming Soon!')">🏷️ Discount Management</button>
+          <button onclick="alert('Feature Coming Soon!')">👥 Customer History</button>
+          <button onclick="alert('Feature Coming Soon!')">🔔 Inventory Alerts</button>
+        </div>
+      </div>
+
+      <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+        <div>
+          <h2 style="margin: 0; font-size: 1.5rem;">Dashboard ✨</h2>
+          <small style="color: #aaa;" id="user-display-email">User</small>
+        </div>
+        <button class="btn-danger" style="width: auto; padding: 10px 20px;" onclick="logout()">Logout</button>
+      </div>
+
+      <div class="glass-card">
+        <div class="accordion-header" onclick="toggleAccordion('products-content', this)">📦 Products & Inventory</div>
+        <div class="accordion-content" id="products-content">
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="prod-name" placeholder="🏷️ Product Name">
+            <input type="number" id="prod-price" placeholder="💵 Price / Kg">
+          </div>
+          <button onclick="saveProduct()">➕ Save Product</button>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Your Inventory</h4>
+          <div id="products-list" class="product-grid"><i>Loading...</i></div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="accordion-header active" onclick="toggleAccordion('billing-content', this)">🧾 Create New Bill</div>
+        <div class="accordion-content show" id="billing-content">
+          <div style="display:flex; gap:10px;">
+            <input type="text" id="cust-name" placeholder="👤 Customer Name">
+            <input type="number" id="cust-phone" placeholder="📞 WhatsApp No. (10 digits)">
+          </div>
+          
+          <div style="display:flex; gap:10px;">
+            <select id="select-product">
+              <option value="">-- Select Product --</option>
+            </select>
+            <input type="number" id="qty" placeholder="⚖️ Weight (Kg)" step="0.01">
+          </div>
+          <button class="btn-success" onclick="addToCart()">🛒 Add to Cart</button>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Cart Items</h4>
+          <div id="cart-list" style="margin-bottom: 15px; color: #ccc;"><i>Cart is empty</i></div>
+          
+          <div style="background: rgba(0, 229, 255, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.3); margin-bottom: 15px;">
+            <h3 style="margin: 0; text-align: right; color: var(--primary);">Total: ₹<span id="total-amount">0.00</span></h3>
+          </div>
+          
+          <button style="background: #25D366; color: white;" onclick="generateBillAndSend()">📲 Send Bill + UPI on WhatsApp</button>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="accordion-header" onclick="toggleAccordion('reminders-content', this)">⏰ Reminders & Due Bills</div>
+        <div class="accordion-content" id="reminders-content">
+          <p style="font-size:0.85rem; color:#ccc;">Toggle switch to mark as Paid/Unpaid. Click 'Send Reminder' for unpaid bills.</p>
+          <div style="overflow-x: auto;">
+            <table class="bill-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                  <th>Status (Unpaid/Paid)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="due-bills-list">
+                </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass-card">
+        <div class="accordion-header" onclick="toggleAccordion('all-bills-content', this)">📁 All Bills History</div>
+        <div class="accordion-content" id="all-bills-content">
+          <div style="overflow-x: auto;">
+            <table class="bill-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Date of Purchase</th>
+                  <th>Amount</th>
+                  <th>Due Date</th>
+                  <th>Download</th>
+                </tr>
+              </thead>
+              <tbody id="all-bills-list">
+                </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+<script type="module">
+  // --- 1. FIREBASE SETUP ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDMSGPEngVmGtTRfcnIC4unH7Rh3FwgcRE",
+    authDomain: "sv-billing-250c2.firebaseapp.com",
+    projectId: "sv-billing-250c2",
+    storageBucket: "sv-billing-250c2.firebasestorage.app",
+    messagingSenderId: "847927101892",
+    appId: "1:847927101892:web:800c182fe47f133d537c91"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // --- 2. GLOBAL VARIABLES ---
+  let isLoginMode = true;
+  let currentUserId = null;
+  let cart = [];
+  let cartTotal = 0;
+  let allProducts = [];
+  let allBills = [];
+
+  // --- 3. UI & TOGGLES ---
+  window.toggleAccordion = (contentId, headerElement) => {
+    const content = document.getElementById(contentId);
+    content.classList.toggle('show');
+    headerElement.classList.toggle('active');
+  };
+
+  window.toggleAuthMode = () => {
+    isLoginMode = !isLoginMode;
+    document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back 🚀" : "Create Account ✨";
+    document.getElementById('auth-btn').innerText = isLoginMode ? "Login" : "Register";
+    document.getElementById('toggle-txt').innerText = isLoginMode ? "New User? Tap to Register" : "Have an account? Tap to Login";
+  };
+
+  window.toggleOrientation = () => {
+    document.getElementById('app-container').classList.toggle('landscape');
+  };
+
+  window.toggleMenu = () => {
+    const menu = document.getElementById('more-menu');
+    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  // --- 4. AUTHENTICATION ---
+  window.handleAuth = async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    if(!email || !password) return alert("⚠️ Please enter valid email and password");
+
+    try {
+      if(isLoginMode) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch(error) {
+      alert("❌ Error: " + error.message);
+    }
+  };
+
+  window.logout = () => signOut(auth);
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUserId = user.uid;
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      document.getElementById('user-display-email').innerText = user.email;
+      loadProducts(); 
+      loadBills();
+    } else {
+      currentUserId = null;
+      document.getElementById('auth-section').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+  });
+
+  // --- 5. PRODUCT MANAGEMENT ---
+  window.saveProduct = async () => {
+    const name = document.getElementById('prod-name').value.trim();
+    const price = parseFloat(document.getElementById('prod-price').value);
+    
+    if(!name || !price) return alert("⚠️ Enter Product Name and Price!");
+    const btn = event.target; btn.innerText = "Saving...";
+    
+    try {
+      await addDoc(collection(db, "products"), { userId: currentUserId, name: name, price: price });
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      loadProducts();
+    } catch(error) { alert("❌ Failed to save!"); } 
+    finally { btn.innerText = "➕ Save Product"; }
+  };
+
+  window.loadProducts = async () => {
+    try {
+      const q = query(collection(db, "products"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      
+      allProducts = [];
+      let html = '';
+      let optionsHtml = '<option value="">-- Select Product --</option>';
+      
+      snapshot.forEach(doc => {
+        const p = doc.data();
+        allProducts.push({ id: doc.id, ...p });
+        
+        // Products as GRID ICONS
+        html += `
+          <div class="product-icon-card">
+            <button class="edit-btn" onclick="editProduct('${doc.id}', '${p.name}', ${p.price})" title="Edit">📝</button>
+            <div class="icon-img">📦</div>
+            <div class="p-name">${p.name}</div>
+            <div class="p-price">₹${p.price}/kg</div>
+          </div>`;
+          
+        optionsHtml += `<option value='{"name":"${p.name}", "price":${p.price}}'>${p.name} - ₹${p.price}/kg</option>`;
+      });
+
+      if(snapshot.empty) html = "<span style='color:#ccc; grid-column: 1/-1;'>No products. Add one!</span>";
+      
+      document.getElementById('products-list').innerHTML = html;
+      document.getElementById('select-product').innerHTML = optionsHtml;
+    } catch (error) { console.error(error); }
+  };
+
+  window.editProduct = async (id, oldName, oldPrice) => {
+    const newName = prompt("Edit Product Name:", oldName);
+    if(newName === null) return;
+    const newPrice = prompt("Edit Price/Kg (₹):", oldPrice);
+    if(newPrice === null) return;
+
+    try {
+      await updateDoc(doc(db, "products", id), { name: newName, price: parseFloat(newPrice) });
+      loadProducts();
+    } catch(e) { alert("Error updating product"); }
+  };
+
+  // --- 6. GLOBAL SEARCH ---
+  window.handleGlobalSearch = () => {
+    const val = document.getElementById('global-search').value.toLowerCase();
+    const resBox = document.getElementById('search-results');
+    
+    if(val.length < 2) { resBox.style.display = 'none'; return; }
+    
+    let results = '';
+    // Search Products
+    allProducts.forEach(p => {
+      if(p.name.toLowerCase().includes(val)) {
+        results += `<div onclick="fillCartFromSearch('${p.name}', ${p.price})">📦 Product: ${p.name} (₹${p.price}/kg)</div>`;
+      }
+    });
+    // Search Customers (from bills)
+    const uniqueCustomers = [...new Set(allBills.map(b => b.customerName))];
+    uniqueCustomers.forEach(c => {
+      if(c.toLowerCase().includes(val)) {
+        const phone = allBills.find(b => b.customerName === c).phone;
+        results += `<div onclick="fillCustomerFromSearch('${c}', '${phone}')">👤 Customer: ${c}</div>`;
+      }
+    });
+
+    resBox.innerHTML = results || '<div style="color:#aaa;">No results found</div>';
+    resBox.style.display = 'block';
+  };
+
+  window.fillCartFromSearch = (name, price) => {
+    document.getElementById('global-search').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    
+    const select = document.getElementById('select-product');
+    const options = Array.from(select.options);
+    const optionToSelect = options.find(opt => opt.value.includes(name));
+    if(optionToSelect) {
+      select.value = optionToSelect.value;
+      document.getElementById('qty').focus();
+    }
+  };
+
+  window.fillCustomerFromSearch = (name, phone) => {
+    document.getElementById('global-search').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    document.getElementById('cust-name').value = name;
+    document.getElementById('cust-phone').value = phone;
+  };
+
+  // --- 7. BILLING & CART LOGIC ---
+  window.addToCart = () => {
+    const prodVal = document.getElementById('select-product').value;
+    const qty = parseFloat(document.getElementById('qty').value);
+    
+    if(!prodVal || !qty) return alert("⚠️ Select a product and enter weight!");
+    
+    const product = JSON.parse(prodVal);
+    const itemTotal = product.price * qty;
+    
+    cart.push({ name: product.name, price: product.price, qty: qty, total: itemTotal });
+    updateCartUI();
+  };
+
+  function updateCartUI() {
+    let html = ''; cartTotal = 0;
+    cart.forEach((item) => {
+      cartTotal += item.total;
+      html += `
+        <div class="item-row" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom:5px; display:flex; justify-content:space-between;">
+          <span>✔️ ${item.name} (${item.qty}kg)</span>
+          <span style="color: var(--primary);">₹${item.total.toFixed(2)}</span>
+        </div>`;
+    });
+    document.getElementById('cart-list').innerHTML = html || "<i>Cart is empty</i>";
+    document.getElementById('total-amount').innerText = cartTotal.toFixed(2);
+  }
+
+  // --- 8. SEND BILL & SAVE DB (15 Days Logic) ---
+  window.generateBillAndSend = async () => {
+    const custName = document.getElementById('cust-name').value.trim();
+    const phone = document.getElementById('cust-phone').value.trim();
+    
+    if(!custName || phone.length < 10 || cart.length === 0) return alert("⚠️ Enter valid details and add items!");
+
+    const purchaseDateStr = new Date().toLocaleDateString('en-IN');
+    
+    // Save to Firebase Database
+    const purchaseDate = new Date();
+    const dueDate = new Date();
+    dueDate.setDate(purchaseDate.getDate() + 15); // 15 Days Due time
+    
+    try {
+      await addDoc(collection(db, "bills"), {
+        userId: currentUserId,
+        customerName: custName,
+        phone: phone,
+        items: cart,
+        totalAmount: cartTotal,
+        purchaseDate: purchaseDate.toISOString(),
+        dueDate: dueDate.toISOString(),
+        status: 'unpaid' // Default is unpaid
+      });
+      loadBills(); // Refresh lists
+    } catch(e) { console.error("Error saving bill", e); }
+
+    // UPI Link
+    const myUpiId = "7997195592@ybl"; 
+    const myStoreName = "Sri Venkateswara";
+    
+    let msg = `🧾 *${myStoreName.toUpperCase()}*\n📞 7997195592\n\n👤 *Customer:* ${custName}\n📅 *Date:* ${purchaseDateStr}\n--------------------------\n`;
+    cart.forEach(item => { msg += `📦 *${item.name}* (${item.qty}kg) ➔ ₹${item.total.toFixed(2)}\n`; });
+    msg += `--------------------------\n💰 *TOTAL : ₹${cartTotal.toFixed(2)}*\n--------------------------\n\n`;
+    
+    const upiLink = `upi://pay?pa=${myUpiId}&pn=${encodeURIComponent(myStoreName)}&am=${cartTotal.toFixed(2)}&cu=INR`;
+    msg += `⚡ *Pay securely via UPI:*\n${upiLink}\n\n⏳ *Due Date:* ${dueDate.toLocaleDateString('en-IN')} (Pay within 15 days)\n🙏 Thank you!`;
+
+    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    
+    // Reset
+    cart = []; updateCartUI();
+    document.getElementById('qty').value = '';
+    document.getElementById('cust-name').value = '';
+    document.getElementById('cust-phone').value = '';
+  };
+
+  // --- 9. REMINDERS & ALL BILLS ---
+  window.loadBills = async () => {
+    try {
+      const q = query(collection(db, "bills"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      
+      allBills = [];
+      snapshot.forEach(doc => allBills.push({ id: doc.id, ...doc.data() }));
+      
+      // Sort by descending purchase date
+      allBills.sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+
+      renderReminders();
+      renderAllBills();
+    } catch (error) { console.error("Error loading bills", error); }
+  };
+
+  function renderReminders() {
+    let dueHtml = '';
+    const today = new Date();
+
+    allBills.forEach(bill => {
+      // Only unpaid
+      if(bill.status === 'unpaid') {
+        const dDate = new Date(bill.dueDate);
+        const pDate = new Date(bill.purchaseDate);
+        
+        // Calculate days left
+        const diffTime = dDate - today;
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        let isUrgent = daysLeft <= 5 && daysLeft >= 0;
+        let rowClass = isUrgent ? 'urgent-row' : '';
+        let warningText = isUrgent ? `<br><small style="color:red; font-weight:bold;">⚠️ ${daysLeft} Days Left!</small>` : '';
+        let isOverdue = daysLeft < 0 ? `<br><small style="color:red; font-weight:bold;">Overdue!</small>` : '';
+
+        // Old bill reminder context (Shows purchase date)
+        dueHtml += `
+          <tr class="${rowClass}">
+            <td><b>${bill.customerName}</b><br><small style="color:#aaa;">Purchased: ${pDate.toLocaleDateString('en-IN')}</small></td>
+            <td style="color:var(--primary); font-weight:bold;">₹${bill.totalAmount.toFixed(2)}</td>
+            <td>${dDate.toLocaleDateString('en-IN')} ${warningText} ${isOverdue}</td>
+            <td>
+              <label class="switch">
+                <input type="checkbox" onchange="toggleBillStatus('${bill.id}', this.checked)">
+                <span class="slider"></span>
+              </label>
+              <br><small>Unpaid</small>
+            </td>
+            <td>
+              <button class="${isUrgent ? 'btn-danger' : 'btn-warning'}" style="padding: 5px; font-size:0.8rem;" 
+                onclick="sendReminderWhatsApp('${bill.customerName}', '${bill.phone}', ${bill.totalAmount}, '${dDate.toISOString()}', ${isUrgent})">
+                💬 Remind
+              </button>
+            </td>
+          </tr>`;
+      }
+    });
+
+    document.getElementById('due-bills-list').innerHTML = dueHtml || '<tr><td colspan="5" style="text-align:center;">No Pending Bills! 🎉</td></tr>';
+  }
+
+  window.toggleBillStatus = async (billId, isChecked) => {
+    // If checked, it means Paid. If unchecked, Unpaid.
+    const newStatus = isChecked ? 'paid' : 'unpaid';
+    try {
+      await updateDoc(doc(db, "bills", billId), { status: newStatus });
+      loadBills(); // refresh
+    } catch(e) { alert("Failed to update status"); }
+  };
+
+  window.sendReminderWhatsApp = (name, phone, amount, dueDateIso, isUrgent) => {
+    const dDate = new Date(dueDateIso).toLocaleDateString('en-IN');
+    let msg = `🙏 Namaste *${name}* garu,\n\nSri Venkateswara nunchi mi bill amount *₹${amount}* pending undi. Due date: *${dDate}*.\n\n`;
+    
+    // Automatic 5-days reminder logic mapping
+    if(isUrgent) {
+      msg += `⚠️ *Urgent:* Due date ki inka koddi rojule undi (last 5 days). Vellu aythe tvaraga pay cheyandi.\n\n`;
+    } else {
+      msg += `Veelainantha tvaraga pay cheyagalaru.\n\n`;
+    }
+    
+    msg += `Payment link unna patha message lo UPI dwara pay cheyochu. Thank you!`;
+    
+    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  function renderAllBills() {
+    let allHtml = '';
+    allBills.forEach(bill => {
+      const pDate = new Date(bill.purchaseDate).toLocaleDateString('en-IN');
+      const dDate = new Date(bill.dueDate).toLocaleDateString('en-IN');
+      const statColor = bill.status === 'paid' ? 'var(--success)' : 'var(--danger)';
+      
+      allHtml += `
+        <tr>
+          <td><b>${bill.customerName}</b><br><small style="color:${statColor};">${bill.status.toUpperCase()}</small></td>
+          <td>${pDate}</td>
+          <td>₹${bill.totalAmount.toFixed(2)}</td>
+          <td>${dDate}</td>
+          <td><button style="padding: 5px; font-size:0.8rem;" onclick="downloadBillTxt('${bill.id}')">💾 Download</button></td>
+        </tr>`;
+    });
+    document.getElementById('all-bills-list').innerHTML = allHtml || '<tr><td colspan="5" style="text-align:center;">No History Found.</td></tr>';
+  }
+
+  // Generate a simple text file for download
+  window.downloadBillTxt = (billId) => {
+    const bill = allBills.find(b => b.id === billId);
+    if(!bill) return;
+
+    let text = `=================================\n`;
+    text += `       SRI VENKATESWARA BILL     \n`;
+    text += `=================================\n`;
+    text += `Customer: ${bill.customerName}\n`;
+    text += `Phone: ${bill.phone}\n`;
+    text += `Purchase Date: ${new Date(bill.purchaseDate).toLocaleDateString('en-IN')}\n`;
+    text += `Due Date: ${new Date(bill.dueDate).toLocaleDateString('en-IN')}\n`;
+    text += `Status: ${bill.status.toUpperCase()}\n`;
+    text += `---------------------------------\n`;
+    bill.items.forEach(item => {
+      text += `${item.name} (${item.qty}kg) = Rs. ${item.total.toFixed(2)}\n`;
+    });
+    text += `---------------------------------\n`;
+    text += `TOTAL: Rs. ${bill.totalAmount.toFixed(2)}\n`;
+    text += `=================================\n`;
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Bill_${bill.customerName}_${new Date(bill.purchaseDate).getTime()}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+</script>
+</body>
+</html>
