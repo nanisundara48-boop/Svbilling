@@ -457,13 +457,14 @@
   </div>
 
 <script type="module">
-  // --- 1. FIREBASE SETUP (PLACEHOLDERS) ---
+  // --- 1. FIREBASE SETUP ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
   import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+  // Ikkada mi original API Key malli add chesanu
   const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // Replace with real details
+    apiKey: "AIzaSyDMSGPEngVmGtTRfcnIC4unH7Rh3FwgcRE", 
     authDomain: "sv-billing-250c2.firebaseapp.com",
     projectId: "sv-billing-250c2",
     storageBucket: "sv-billing-250c2.firebasestorage.app",
@@ -474,7 +475,6 @@
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-
   // --- 2. GLOBAL VARIABLES ---
   let isLoginMode = true;
   let currentUserId = null;
