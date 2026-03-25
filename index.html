@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sri Venkateswara - Advanced Billing</title>
+  <title>Sri Venkateswara Billing - Advanced Sequential Workflow</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     /* --- FUTURISTIC THEME & VARIABLES --- */
     :root {
@@ -51,7 +52,7 @@
       max-width: 95%;
     }
 
-    /* --- TOP HEADER & ICONS --- */
+    /* --- TOP HEADER & ICONS (Fixed Position) --- */
     .top-header {
       display: flex;
       justify-content: space-between;
@@ -96,7 +97,7 @@
     .search-results div { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
     .search-results div:hover { background: rgba(0,229,255,0.2); }
 
-    /* 3 Dots Menu */
+    /* 3 Dots Menu (Correct Z-Index) */
     .more-menu {
       position: absolute;
       top: 50px; right: 10px;
@@ -105,7 +106,7 @@
       border-radius: 8px;
       display: none;
       flex-direction: column;
-      z-index: 100;
+      z-index: 1000; /* High layer to be in front */
       box-shadow: 0 5px 15px rgba(0,0,0,0.5);
     }
     .more-menu button {
@@ -132,29 +133,9 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     
-    /* --- ACCORDION --- */
-    .accordion-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1.25rem;
-      font-weight: 600;
-      cursor: pointer;
-      padding: 10px 0;
-      transition: color 0.3s ease;
-    }
-    .accordion-header:hover { color: var(--primary); }
-    .accordion-header::after { content: '▼'; font-size: 0.8rem; transition: transform 0.4s; }
-    .accordion-header.active::after { transform: rotate(180deg); color: var(--primary); }
-    .accordion-header.active { border-bottom: 1px solid var(--glass-border); padding-bottom: 15px; margin-bottom: 15px; }
-
-    .accordion-content {
-      max-height: 0; overflow: hidden; opacity: 0;
-      transition: max-height 0.6s ease, opacity 0.5s ease;
-    }
-    .accordion-content.show {
-      max-height: 2000px; opacity: 1;
-    }
+    /* --- SECTION MANAGER --- */
+    .app-section { display: none; }
+    .app-section.active { display: block; animation: slideIn 0.3s ease forwards; }
 
     /* --- INPUTS & BUTTONS --- */
     input, select, button {
@@ -183,27 +164,33 @@
     .product-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 15px;
-      margin-top: 15px;
+      gap: 15px; margin-top: 15px;
     }
     .product-icon-card {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid var(--glass-border);
-      border-radius: 12px;
-      padding: 15px 10px;
-      text-align: center;
-      position: relative;
-      transition: 0.3s;
+      background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+      border-radius: 12px; padding: 15px 10px; text-align: center;
+      position: relative; transition: 0.3s; cursor: pointer;
     }
-    .product-icon-card:hover { border-color: var(--primary); }
-    .product-icon-card .edit-btn {
-      position: absolute; top: 5px; right: 5px;
-      background: transparent; padding: 0; width: auto; margin: 0;
-      font-size: 1.2rem; cursor: pointer; color: #fff;
-    }
+    .product-icon-card:hover { border-color: var(--primary); transform: scale(1.03); }
     .product-icon-card .icon-img { font-size: 2.5rem; margin-bottom: 5px; }
     .product-icon-card .p-name { font-weight: 600; font-size: 1rem; }
     .product-icon-card .p-price { color: var(--primary); font-size: 0.9rem; margin-top: 5px; }
+    
+    /* Cart Quantity Badge */
+    .product-icon-card .cart-qty-badge {
+      position: absolute; bottom: 5px; left: 5px;
+      background: var(--success); color: #fff;
+      font-size: 0.8rem; padding: 2px 6px; border-radius: 10px;
+      display: none;
+    }
+
+    /* --- CUSTOMER MANAGEMENT LIST --- */
+    .customer-list-item {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+      border-radius: 10px; padding: 15px; margin-bottom: 10px;
+    }
+    .cust-actions button { width: auto; padding: 8px 12px; font-size: 0.85rem; }
 
     /* --- TOGGLE SWITCH (Paid/Unpaid) --- */
     .switch {
@@ -225,8 +212,41 @@
     .bill-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
     .bill-table th, .bill-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--glass-border); }
     .bill-table th { color: var(--primary); }
-    .action-row { display: flex; align-items: center; gap: 10px; }
-    .urgent-row { background: rgba(255, 75, 43, 0.2); } /* Red tint for 5-day due */
+    .urgent-row { background: rgba(255, 75, 43, 0.2); }
+
+    /* --- BILL PREVIEW (Futuristic) --- */
+    #bill-preview-container {
+      border: 2px solid var(--primary); border-radius: 15px; padding: 20px;
+      background: rgba(0,0,0,0.5); font-family: 'Courier New', monospace;
+      color: #fff; line-height: 1.4;
+    }
+    #bill-preview-header {
+      text-align: center; border-bottom: 1px dashed var(--primary);
+      padding-bottom: 15px; margin-bottom: 15px;
+    }
+    .bill-item-row { display: flex; justify-content: space-between; }
+
+    /* --- MODAL (Sequential Flow) --- */
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+      z-index: 2000; display: none;
+      justify-content: center; align-items: center;
+      animation: slideIn 0.3s ease;
+    }
+    .modal-content {
+      background: #1a2a3a; border-radius: 20px;
+      padding: 30px; width: 90%; max-width: 450px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .close-modal {
+      position: absolute; top: 15px; right: 15px;
+      cursor: pointer; color: #fff; font-size: 1.5rem;
+    }
+    
+    /* MODAL SEQUENCING BUTTONS */
+    .modal-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
 
     #dashboard { display: none; }
   </style>
@@ -237,7 +257,6 @@
     
     <div class="glass-card" id="auth-section">
       <h2 id="auth-title" style="text-align: center; margin-top: 0;">Welcome Back 🚀</h2>
-      <p style="text-align: center; color: #ccc; font-size: 0.9rem;">Sign in to manage your store securely</p>
       <input type="email" id="email" placeholder="📧 Email Address">
       <input type="password" id="password" placeholder="🔒 Password">
       <button id="auth-btn" onclick="handleAuth()">Login</button>
@@ -248,81 +267,97 @@
       
       <div class="top-header">
         <div class="header-icons">
-          <span class="icon-btn" onclick="toggleOrientation()" title="Landscape/Portrait">🔄📱</span>
-          <span class="icon-btn" title="User Profile">👤</span>
+          <span class="icon-btn" onclick="toggleOrientation()">🔄</span>
+          <select id="user-selector" onchange="switchUser()" style="width:auto; margin:0; padding:5px 10px; font-size:0.9rem;">
+            <option value="owner">👤 Owner Profiles</option>
+            <option value="staff1">Staff 1</option>
+          </select>
         </div>
         
         <div class="search-box">
-          <input type="text" id="global-search" placeholder="🔍 Search Users/Products (2+ letters)..." onkeyup="handleGlobalSearch()">
+          <input type="text" id="global-search" placeholder="🔍 Search Products/Customers..." onkeyup="handleGlobalSearch()">
           <div class="search-results" id="search-results"></div>
         </div>
 
         <div class="header-icons">
-          <span class="icon-btn" onclick="toggleMenu()" title="More Options">⋮</span>
+          <span class="icon-btn" onclick="toggleMenu()">⋮</span>
         </div>
 
         <div class="more-menu" id="more-menu">
-          <button onclick="alert('Feature Coming Soon!')">💸 Expense Tracking</button>
-          <button onclick="alert('Feature Coming Soon!')">📊 Sales Report</button>
-          <button onclick="alert('Feature Coming Soon!')">🏷️ Discount Management</button>
-          <button onclick="alert('Feature Coming Soon!')">👥 Customer History</button>
-          <button onclick="alert('Feature Coming Soon!')">🔔 Inventory Alerts</button>
+          <button onclick="openModal('shop-modal')">🏢 Shop Details (Owner)</button>
+          <button onclick="switchSection('customer-management')">👥 Manage Customers</button>
+          <button onclick="switchSection('bills-history')">📁 All Bills History</button>
+          <button onclick="alert('Coming Soon')">💸 Expense Tracking</button>
+          <button onclick="alert('Coming Soon')">📊 Sales Report</button>
         </div>
       </div>
 
       <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
-        <div>
-          <h2 style="margin: 0; font-size: 1.5rem;">Dashboard ✨</h2>
-          <small style="color: #aaa;" id="user-display-email">User</small>
-        </div>
+        <h2 style="margin: 0; font-size: 1.5rem;">Dashboard ✨</h2>
         <button class="btn-danger" style="width: auto; padding: 10px 20px;" onclick="logout()">Logout</button>
       </div>
 
-      <div class="glass-card">
-        <div class="accordion-header" onclick="toggleAccordion('products-content', this)">📦 Products & Inventory</div>
-        <div class="accordion-content" id="products-content">
-          <div style="display:flex; gap:10px;">
-            <input type="text" id="prod-name" placeholder="🏷️ Product Name">
-            <input type="number" id="prod-price" placeholder="💵 Price / Kg">
-          </div>
-          <button onclick="saveProduct()">➕ Save Product</button>
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom: 20px;">
+        <button style="background: var(--success);" onclick="switchSection('new-bill-section')">🧾 New Bill</button>
+        <button onclick="switchSection('products-section')">📦 Products</button>
+        <button style="background: var(--warning);" onclick="switchSection('reminders-section')">⏰ Reminders</button>
+      </div>
+
+      <div class="app-sectionactive" id="products-section">
+        <div class="glass-card">
+          <div class="accordion-header">📦 Products & Inventory</div>
+          <button onclick="openProductModal('add')">➕ Add New Product</button>
           
           <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Your Inventory</h4>
           <div id="products-list" class="product-grid"><i>Loading...</i></div>
         </div>
       </div>
 
-      <div class="glass-card">
-        <div class="accordion-header active" onclick="toggleAccordion('billing-content', this)">🧾 Create New Bill</div>
-        <div class="accordion-content show" id="billing-content">
-          <div style="display:flex; gap:10px;">
-            <input type="text" id="cust-name" placeholder="👤 Customer Name">
-            <input type="number" id="cust-phone" placeholder="📞 WhatsApp No. (10 digits)">
-          </div>
+      <div class="app-section" id="new-bill-section">
+        <div class="glass-card">
+          <div class="accordion-header">🧾 Create New Bill</div>
+          <p style="font-size:0.9rem; color:#ccc;">Step 1: Click product cards below to populate cart.</p>
           
-          <div style="display:flex; gap:10px;">
-            <select id="select-product">
-              <option value="">-- Select Product --</option>
-            </select>
-            <input type="number" id="qty" placeholder="⚖️ Weight (Kg)" step="0.01">
-          </div>
-          <button class="btn-success" onclick="addToCart()">🛒 Add to Cart</button>
+          <div id="new-bill-products-list" class="product-grid"><i>Loading products...</i></div>
           
           <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Cart Items</h4>
-          <div id="cart-list" style="margin-bottom: 15px; color: #ccc;"><i>Cart is empty</i></div>
+          <div id="cart-list" style="margin-bottom: 15px; color: #ccc;"><i>Cart is empty. Click products above.</i></div>
           
           <div style="background: rgba(0, 229, 255, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.3); margin-bottom: 15px;">
             <h3 style="margin: 0; text-align: right; color: var(--primary);">Total: ₹<span id="total-amount">0.00</span></h3>
           </div>
           
-          <button style="background: #25D366; color: white;" onclick="generateBillAndSend()">📲 Send Bill + UPI on WhatsApp</button>
+          <button class="btn-success" style="display:none;" id="select-customer-btn" onclick="openModal('select-customer-modal')">👤 Step 2: Select Customer</button>
         </div>
       </div>
 
-      <div class="glass-card">
-        <div class="accordion-header" onclick="toggleAccordion('reminders-content', this)">⏰ Reminders & Due Bills</div>
-        <div class="accordion-content" id="reminders-content">
-          <p style="font-size:0.85rem; color:#ccc;">Toggle switch to mark as Paid/Unpaid. Click 'Send Reminder' for unpaid bills.</p>
+      <div class="app-section" id="customer-management">
+        <div class="glass-card">
+          <div class="accordion-header">👥 Manage Customers</div>
+          <button onclick="openCustomerModal('add')">👤 Add New Customer</button>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Saved Customers</h4>
+          <div id="customers-list"><i>Loading...</i></div>
+        </div>
+      </div>
+
+      <div class="app-section" id="bills-history">
+        <div class="glass-card">
+          <div class="accordion-header">📁 All Bills History</div>
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Purchase History</h4>
+          <div style="overflow-x: auto;">
+            <table class="bill-table">
+              <thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="all-bills-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-section" id="reminders-section">
+        <div class="glass-card">
+          <div class="accordion-header">⏰ Reminders & Due Bills</div>
+          <p style="font-size:0.85rem; color:#ccc;">Toggle switch to mark as Paid/Unpaid. Click trash 🗑️ to delete bill. Click 💬 to send reminder.</p>
           <div style="overflow-x: auto;">
             <table class="bill-table">
               <thead>
@@ -341,38 +376,94 @@
         </div>
       </div>
 
-      <div class="glass-card">
-        <div class="accordion-header" onclick="toggleAccordion('all-bills-content', this)">📁 All Bills History</div>
-        <div class="accordion-content" id="all-bills-content">
-          <div style="overflow-x: auto;">
-            <table class="bill-table">
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Date of Purchase</th>
-                  <th>Amount</th>
-                  <th>Due Date</th>
-                  <th>Download</th>
-                </tr>
-              </thead>
-              <tbody id="all-bills-list">
-                </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+    </div>
+  </div>
 
+  <div class="modal" id="product-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('product-modal')">&times;</span>
+      <h3 id="product-modal-title">Product Details</h3>
+      <input type="hidden" id="edit-prod-id">
+      <input type="text" id="prod-name" placeholder="🏷️ Product Name">
+      <input type="number" id="prod-price" placeholder="💵 Price per Unit (Kg/Pcs)">
+      <select id="prod-type">
+        <option value="kg">⚖️ per Kg</option>
+        <option value="pcs">📦 per Pcs</option>
+      </select>
+      <button id="save-product-btn" onclick="saveProduct()">Save Product</button>
+      <button id="delete-product-btn" class="btn-danger" style="display:none;" onclick="deleteProductFromModal()">Delete Product</button>
+    </div>
+  </div>
+
+  <div class="modal" id="weight-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('weight-modal')">&times;</span>
+      <h3 id="weight-modal-title">Product Quantity</h3>
+      <p id="weight-modal-product-info"></p>
+      <input type="hidden" id="current-prod-id-weight">
+      <input type="number" id="qty-input" placeholder="0.00" step="0.01">
+      <button onclick="finalizeAddToCart()">Add to Cart ✔️</button>
+    </div>
+  </div>
+
+  <div class="modal" id="customer-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('customer-modal')">&times;</span>
+      <h3 id="customer-modal-title">Customer Details</h3>
+      <input type="hidden" id="edit-cust-id">
+      <input type="text" id="cust-name-modal" placeholder="👤 Full Name">
+      <input type="number" id="cust-phone-modal" placeholder="📞 WhatsApp Number (10 digits)">
+      <button id="save-customer-btn" onclick="saveCustomer()">Save Customer</button>
+      <button id="delete-customer-btn" class="btn-danger" style="display:none;" onclick="deleteCustomerFromModal()">Delete Customer</button>
+    </div>
+  </div>
+
+  <div class="modal" id="select-customer-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('select-customer-modal')">&times;</span>
+      <h3>👤 Step 2: Select Customer</h3>
+      <p style="font-size:0.9rem; color:#ccc; margin-bottom: 20px;">Saved Customers | Click 📝 to customize.</p>
+      <div id="billing-customer-list"><i>Loading...</i></div>
+      <button class="btn-success" style="margin-top:20px;" onclick="closeModal('select-customer-modal'); openCustomerModal('add');">👤 New Customer</button>
+    </div>
+  </div>
+
+  <div class="modal" id="shop-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('shop-modal')">&times;</span>
+      <h3>🏢 Shop (Owner) Details</h3>
+      <input type="text" id="shop-name-modal" placeholder="🏢 Shop Name">
+      <input type="text" id="shop-owner-modal" placeholder="👤 Owner Name">
+      <input type="number" id="shop-phone-modal" placeholder="📞 Shop Phone Number">
+      <input type="text" id="shop-upi-modal" placeholder="⚡ UPI ID (avasaram aythe)">
+      <button onclick="saveShopDetails()">Save Details</button>
+    </div>
+  </div>
+
+  <div class="modal" id="preview-modal">
+    <div class="modal-content" style="max-width: 550px;">
+      <span class="close-modal" onclick="closeModal('preview-modal')">&times;</span>
+      <h3>📋 Step 3: Futuristic Bill Preview</h3>
+      <p style="font-size:0.9rem; color:#ccc;">Edit mistake: Close and adjust in cart.</p>
+      
+      <div id="bill-preview-container">
+        </div>
+
+      <div class="modal-nav">
+        <button style="background: var(--warning); color: #000;" onclick="downloadBillImage()">💾 Download as Image (for Gallery)</button>
+        <button style="background: #25D366; color: white;" onclick="sendWhatsAppBill()">📲 Send on WhatsApp</button>
+      </div>
     </div>
   </div>
 
 <script type="module">
-  // --- 1. FIREBASE SETUP ---
+  // --- 1. FIREBASE SETUP (PLACEHOLDERS) ---
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyDMSGPEngVmGtTRfcnIC4unH7Rh3FwgcRE",
+    apiKey: "YOUR_API_KEY", // Replace with real details
     authDomain: "sv-billing-250c2.firebaseapp.com",
     projectId: "sv-billing-250c2",
     storageBucket: "sv-billing-250c2.firebasestorage.app",
@@ -390,20 +481,24 @@
   let cart = [];
   let cartTotal = 0;
   let allProducts = [];
+  let allCustomers = [];
+  let currentOwnerProfile = "owner";
+  let shopDetails = {};
+  let currentBillingCustomer = null;
   let allBills = [];
 
-  // --- 3. UI & TOGGLES ---
-  window.toggleAccordion = (contentId, headerElement) => {
-    const content = document.getElementById(contentId);
-    content.classList.toggle('show');
-    headerElement.classList.toggle('active');
+  // --- 3. UI INTERACTIONS ---
+  window.switchSection = (sectionId) => {
+    document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
   };
-
-  window.toggleAuthMode = () => {
-    isLoginMode = !isLoginMode;
-    document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back 🚀" : "Create Account ✨";
-    document.getElementById('auth-btn').innerText = isLoginMode ? "Login" : "Register";
-    document.getElementById('toggle-txt').innerText = isLoginMode ? "New User? Tap to Register" : "Have an account? Tap to Login";
+  
+  window.openModal = (modalId) => {
+    document.getElementById(modalId).style.display = 'flex';
+  };
+  
+  window.closeModal = (modalId) => {
+    document.getElementById(modalId).style.display = 'none';
   };
 
   window.toggleOrientation = () => {
@@ -427,9 +522,7 @@
       } else {
         await createUserWithEmailAndPassword(auth, email, password);
       }
-    } catch(error) {
-      alert("❌ Error: " + error.message);
-    }
+    } catch(error) { alert("❌ Error: " + error.message); }
   };
 
   window.logout = () => signOut(auth);
@@ -439,8 +532,9 @@
       currentUserId = user.uid;
       document.getElementById('auth-section').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
-      document.getElementById('user-display-email').innerText = user.email;
+      loadShopDetails();
       loadProducts(); 
+      loadCustomers();
       loadBills();
     } else {
       currentUserId = null;
@@ -449,126 +543,237 @@
     }
   });
 
-  // --- 5. PRODUCT MANAGEMENT ---
-  window.saveProduct = async () => {
-    const name = document.getElementById('prod-name').value.trim();
-    const price = parseFloat(document.getElementById('prod-price').value);
-    
-    if(!name || !price) return alert("⚠️ Enter Product Name and Price!");
-    const btn = event.target; btn.innerText = "Saving...";
-    
+  // --- 5. SHOP DETAILS (OWNER) ---
+  window.saveShopDetails = async () => {
+    const data = {
+      shopName: document.getElementById('shop-name-modal').value,
+      ownerName: document.getElementById('shop-owner-modal').value,
+      phoneNumber: document.getElementById('shop-phone-modal').value,
+      upiId: document.getElementById('shop-upi-modal').value
+    };
     try {
-      await addDoc(collection(db, "products"), { userId: currentUserId, name: name, price: price });
+      await setDoc(doc(db, "shopDetails", currentUserId), data);
+      shopDetails = data;
+      alert("Shop details saved!");
+      closeModal('shop-modal');
+    } catch(e) { alert("Failed to save details"); }
+  };
+  
+  async function loadShopDetails() {
+    try {
+      const docRef = doc(db, "shopDetails", currentUserId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) { shopDetails = docSnap.data(); }
+    } catch(e) { console.error("Error loading shop details", e); }
+  }
+
+  // --- 6. PRODUCT MANAGEMENT ---
+  window.openProductModal = (mode, prodId) => {
+    const modal = document.getElementById('product-modal');
+    const title = document.getElementById('product-modal-title');
+    const delBtn = document.getElementById('delete-product-btn');
+    const saveBtn = document.getElementById('save-product-btn');
+
+    if(mode === 'add') {
+      title.innerText = "➕ Add New Product";
+      document.getElementById('edit-prod-id').value = '';
       document.getElementById('prod-name').value = '';
       document.getElementById('prod-price').value = '';
+      document.getElementById('prod-type').value = 'kg';
+      delBtn.style.display = 'none';
+      saveBtn.innerText = "Add Product";
+    } else {
+      title.innerText = "📝 Edit Product (Customize)";
+      const p = allProducts.find(prod => prod.id === prodId);
+      document.getElementById('edit-prod-id').value = prodId;
+      document.getElementById('prod-name').value = p.name;
+      document.getElementById('prod-price').value = p.price;
+      document.getElementById('prod-type').value = p.type;
+      delBtn.style.display = 'block';
+      saveBtn.innerText = "Save Changes";
+    }
+    modal.style.display = 'flex';
+  };
+
+  window.saveProduct = async () => {
+    const id = document.getElementById('edit-prod-id').value;
+    const name = document.getElementById('prod-name').value.trim();
+    const price = parseFloat(document.getElementById('prod-price').value);
+    const type = document.getElementById('prod-type').value;
+    
+    if(!name || !price) return alert("⚠️ Enter Name and Price!");
+    
+    const btn = document.getElementById('save-product-btn');
+    btn.innerText = id ? "Saving Changes..." : "Adding Product...";
+    
+    try {
+      if(id) { // Edit
+        await updateDoc(doc(db, "products", id), { name: name, price: price, type: type });
+      } else { // Add
+        await addDoc(collection(db, "products"), { userId: currentUserId, name: name, price: price, type: type });
+      }
       loadProducts();
+      closeModal('product-modal');
     } catch(error) { alert("❌ Failed to save!"); } 
-    finally { btn.innerText = "➕ Save Product"; }
+    finally { btn.innerText = id ? "Save Changes" : "Add Product"; }
   };
 
   window.loadProducts = async () => {
     try {
       const q = query(collection(db, "products"), where("userId", "==", currentUserId));
       const snapshot = await getDocs(q);
-      
       allProducts = [];
-      let html = '';
-      let optionsHtml = '<option value="">-- Select Product --</option>';
+      let gridHtml = '';
+      let billingGridHtml = '';
       
       snapshot.forEach(doc => {
         const p = doc.data();
         allProducts.push({ id: doc.id, ...p });
         
-        // Products as GRID ICONS
-        html += `
+        const cardHtml = `
           <div class="product-icon-card">
-            <button class="edit-btn" onclick="editProduct('${doc.id}', '${p.name}', ${p.price})" title="Edit">📝</button>
+            <button class="btn-icon" style="position:absolute; top:5px; right:5px; color:#fff;" onclick="openProductModal('edit', '${doc.id}')" title="Edit">📝</button>
             <div class="icon-img">📦</div>
             <div class="p-name">${p.name}</div>
-            <div class="p-price">₹${p.price}/kg</div>
+            <div class="p-price">₹${p.price}/${p.type}</div>
+          </div>`;
+          gridHtml += cardHtml;
+          
+          billingGridHtml += `
+            <div class="product-icon-card" onclick="openWeightModal('${doc.id}')">
+              <div class="icon-img">📦</div>
+              <div class="p-name">${p.name}</div>
+              <div class="p-price">₹${p.price}/${p.type}</div>
+              <div class="cart-qty-badge" id="cart-badge-${doc.id}">0</div>
+            </div>`;
+      });
+      
+      if(snapshot.empty) gridHtml = "<span style='color:#ccc; grid-column: 1/-1;'>No products. Add one!</span>";
+      document.getElementById('products-list').innerHTML = gridHtml;
+      document.getElementById('new-bill-products-list').innerHTML = billingGridHtml || gridHtml;
+      updateProductGridBadges();
+    } catch (error) { console.error(error); }
+  };
+  
+  function updateProductGridBadges() {
+    allProducts.forEach(p => {
+      const badge = document.getElementById(`cart-badge-${p.id}`);
+      const cartItem = cart.find(i => i.id === p.id);
+      if(cartItem) {
+        badge.innerText = cartItem.qty;
+        badge.style.display = 'block';
+      } else {
+        badge.style.display = 'none';
+      }
+    });
+  }
+
+  // --- 7. CUSTOMER MANAGEMENT ---
+  window.openCustomerModal = (mode, custId) => {
+    const modal = document.getElementById('customer-modal');
+    const title = document.getElementById('customer-modal-title');
+    const delBtn = document.getElementById('delete-customer-btn');
+    const saveBtn = document.getElementById('save-customer-btn');
+
+    if(mode === 'add') {
+      title.innerText = "👤 Add New Customer";
+      document.getElementById('edit-cust-id').value = '';
+      document.getElementById('cust-name-modal').value = '';
+      document.getElementById('cust-phone-modal').value = '';
+      delBtn.style.display = 'none';
+      saveBtn.innerText = "Add Customer";
+    } else {
+      title.innerText = "📝 Edit Customer (Customize)";
+      const c = allCustomers.find(cust => cust.id === custId);
+      document.getElementById('edit-cust-id').value = custId;
+      document.getElementById('cust-name-modal').value = c.customerName;
+      document.getElementById('cust-phone-modal').value = c.phone;
+      delBtn.style.display = 'block';
+      saveBtn.innerText = "Save Changes";
+    }
+    modal.style.display = 'flex';
+  };
+
+  window.saveCustomer = async () => {
+    const id = document.getElementById('edit-cust-id').value;
+    const name = document.getElementById('cust-name-modal').value.trim();
+    const phone = document.getElementById('cust-phone-modal').value.trim();
+    if(!name || phone.length < 10) return alert("⚠️ Enter Name and valid Phone!");
+    
+    try {
+      if(id) {
+        await updateDoc(doc(db, "customers", id), { customerName: name, phone: phone });
+      } else {
+        await addDoc(collection(db, "customers"), { userId: currentUserId, customerName: name, phone: phone });
+      }
+      loadCustomers();
+      closeModal('customer-modal');
+    } catch(e) { alert("Failed to save customer"); }
+  };
+
+  window.loadCustomers = async () => {
+    try {
+      const q = query(collection(db, "customers"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      allCustomers = [];
+      let listHtml = '';
+      let billingListHtml = '';
+      
+      snapshot.forEach(doc => {
+        const c = doc.data();
+        allCustomers.push({ id: doc.id, ...c });
+        
+        listHtml += `
+          <div class="customer-list-item">
+            <div>
+              👤 ${c.customerName}<br>
+              <small style="color:#aaa;">📞 ${c.phone}</small>
+            </div>
+            <div class="cust-actions">
+              <button class="btn-icon" style="color:#fff;" onclick="openCustomerModal('edit', '${doc.id}')" title="Edit">📝</button>
+            </div>
           </div>`;
           
-        optionsHtml += `<option value='{"name":"${p.name}", "price":${p.price}}'>${p.name} - ₹${p.price}/kg</option>`;
+          billingListHtml += `<button onclick="selectCustomerForBill('${doc.id}')">👤 ${c.customerName} (📞 ${c.phone})</button>`;
       });
-
-      if(snapshot.empty) html = "<span style='color:#ccc; grid-column: 1/-1;'>No products. Add one!</span>";
-      
-      document.getElementById('products-list').innerHTML = html;
-      document.getElementById('select-product').innerHTML = optionsHtml;
+      document.getElementById('customers-list').innerHTML = listHtml || '<i>No saved customers.</i>';
+      document.getElementById('billing-customer-list').innerHTML = billingListHtml || '<i>Save customers in more options or add new...</i>';
     } catch (error) { console.error(error); }
   };
 
-  window.editProduct = async (id, oldName, oldPrice) => {
-    const newName = prompt("Edit Product Name:", oldName);
-    if(newName === null) return;
-    const newPrice = prompt("Edit Price/Kg (₹):", oldPrice);
-    if(newPrice === null) return;
-
-    try {
-      await updateDoc(doc(db, "products", id), { name: newName, price: parseFloat(newPrice) });
-      loadProducts();
-    } catch(e) { alert("Error updating product"); }
-  };
-
-  // --- 6. GLOBAL SEARCH ---
-  window.handleGlobalSearch = () => {
-    const val = document.getElementById('global-search').value.toLowerCase();
-    const resBox = document.getElementById('search-results');
+  // --- 8. BILLING CART & QUANTITY MODAL ---
+  window.openWeightModal = (prodId) => {
+    const prod = allProducts.find(p => p.id === prodId);
+    document.getElementById('current-prod-id-weight').value = prodId;
+    document.getElementById('weight-modal-product-info').innerText = `${prod.name} (₹${prod.price}/${prod.type})`;
     
-    if(val.length < 2) { resBox.style.display = 'none'; return; }
-    
-    let results = '';
-    // Search Products
-    allProducts.forEach(p => {
-      if(p.name.toLowerCase().includes(val)) {
-        results += `<div onclick="fillCartFromSearch('${p.name}', ${p.price})">📦 Product: ${p.name} (₹${p.price}/kg)</div>`;
+    // Check if already in cart
+    const existingIndex = cart.findIndex(item => item.id === prodId);
+    if(existingIndex !== -1) {
+      if(confirm(`⚠️ "${prod.name}" is already in cart. Click OK to add one more (or adjust in list below).`)) {
+        cart[existingIndex].qty += 1;
+        cart[existingIndex].total = cart[existingIndex].qty * cart[existingIndex].price;
+        updateCartUI();
+        return; // Don't open weight modal
       }
-    });
-    // Search Customers (from bills)
-    const uniqueCustomers = [...new Set(allBills.map(b => b.customerName))];
-    uniqueCustomers.forEach(c => {
-      if(c.toLowerCase().includes(val)) {
-        const phone = allBills.find(b => b.customerName === c).phone;
-        results += `<div onclick="fillCustomerFromSearch('${c}', '${phone}')">👤 Customer: ${c}</div>`;
-      }
-    });
-
-    resBox.innerHTML = results || '<div style="color:#aaa;">No results found</div>';
-    resBox.style.display = 'block';
-  };
-
-  window.fillCartFromSearch = (name, price) => {
-    document.getElementById('global-search').value = '';
-    document.getElementById('search-results').style.display = 'none';
-    
-    const select = document.getElementById('select-product');
-    const options = Array.from(select.options);
-    const optionToSelect = options.find(opt => opt.value.includes(name));
-    if(optionToSelect) {
-      select.value = optionToSelect.value;
-      document.getElementById('qty').focus();
     }
+    
+    document.getElementById('qty-input').value = '1.00';
+    openModal('weight-modal');
   };
 
-  window.fillCustomerFromSearch = (name, phone) => {
-    document.getElementById('global-search').value = '';
-    document.getElementById('search-results').style.display = 'none';
-    document.getElementById('cust-name').value = name;
-    document.getElementById('cust-phone').value = phone;
-  };
-
-  // --- 7. BILLING & CART LOGIC ---
-  window.addToCart = () => {
-    const prodVal = document.getElementById('select-product').value;
-    const qty = parseFloat(document.getElementById('qty').value);
+  window.finalizeAddToCart = () => {
+    const prodId = document.getElementById('current-prod-id-weight').value;
+    const qty = parseFloat(document.getElementById('qty-input').value);
     
-    if(!prodVal || !qty) return alert("⚠️ Select a product and enter weight!");
+    if(!qty || qty <= 0) return alert("⚠️ Enter valid weight!");
     
-    const product = JSON.parse(prodVal);
-    const itemTotal = product.price * qty;
+    const prod = allProducts.find(p => p.id === prodId);
+    const itemTotal = prod.price * qty;
     
-    cart.push({ name: product.name, price: product.price, qty: qty, total: itemTotal });
+    cart.push({ id: prodId, name: prod.name, price: prod.price, type: prod.type, qty: qty, total: itemTotal });
     updateCartUI();
+    closeModal('weight-modal');
   };
 
   function updateCartUI() {
@@ -576,74 +781,129 @@
     cart.forEach((item) => {
       cartTotal += item.total;
       html += `
-        <div class="item-row" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom:5px; display:flex; justify-content:space-between;">
-          <span>✔️ ${item.name} (${item.qty}kg)</span>
-          <span style="color: var(--primary);">₹${item.total.toFixed(2)}</span>
+        <div class="item-row" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom:5px;">
+          <span>✔️ ${item.name} (${item.qty}${item.type} × ₹${item.price.toFixed(2)})</span>
+          <span style="color: var(--primary); font-weight:bold;">₹${item.total.toFixed(2)}</span>
         </div>`;
     });
-    document.getElementById('cart-list').innerHTML = html || "<i>Cart is empty</i>";
+    document.getElementById('cart-list').innerHTML = html || "<i>Cart is empty. Click products above.</i>";
     document.getElementById('total-amount').innerText = cartTotal.toFixed(2);
+    document.getElementById('select-customer-btn').style.display = cart.length > 0 ? 'block' : 'none';
+    updateProductGridBadges();
   }
 
-  // --- 8. SEND BILL & SAVE DB (15 Days Logic) ---
-  window.generateBillAndSend = async () => {
-    const custName = document.getElementById('cust-name').value.trim();
-    const phone = document.getElementById('cust-phone').value.trim();
-    
-    if(!custName || phone.length < 10 || cart.length === 0) return alert("⚠️ Enter valid details and add items!");
+  // --- 9. SELECT CUSTOMER FOR BILL ---
+  window.selectCustomerForBill = (custId) => {
+    currentBillingCustomer = allCustomers.find(c => c.id === custId);
+    closeModal('select-customer-modal');
+    renderBillPreview();
+    openModal('preview-modal');
+  };
 
-    const purchaseDateStr = new Date().toLocaleDateString('en-IN');
+  // --- 10. BILL PREVIEW (Futuristic Rendering) & SEND ---
+  function renderBillPreview() {
+    const pDateStr = new Date().toLocaleDateString('en-IN');
+    const dDateStr = new Date(); dDateStr.setDate(dDateStr.getDate() + 15);
     
-    // Save to Firebase Database
-    const purchaseDate = new Date();
-    const dueDate = new Date();
-    dueDate.setDate(purchaseDate.getDate() + 15); // 15 Days Due time
+    let itemsHtml = '';
+    cart.forEach(item => {
+      itemsHtml += `<div class="bill-item-row">
+                      <span>${item.name} (${item.qty}${item.type})</span>
+                      <span>Rs.${item.total.toFixed(2)}</span>
+                    </div>`;
+    });
     
+    let shopInfoHtml = '';
+    if(shopDetails.shopName) {
+      shopInfoHtml = `<h3>${shopDetails.shopName.toUpperCase()}</h3>
+                      <p>${shopDetails.ownerName || ''} | 📞 ${shopDetails.phoneNumber || ''}</p>`;
+    } else { shopInfoHtml = `<h3>SHOP DETAILS NOT SET</h3><p>Edit in options ⋮</p>`; }
+    
+    document.getElementById('bill-preview-container').innerHTML = `
+        <div id="bill-preview-header">
+          ${shopInfoHtml}
+        </div>
+        <div>
+          👤 Customer: <b>${currentBillingCustomer.customerName}</b><br>
+          📞 Phone: ${currentBillingCustomer.phone}<br>
+          📅 Date: ${pDateStr} | ⏳ Due Date: ${dDateStr.toLocaleDateString('en-IN')} (15 Days)
+        </div>
+        <div style="margin-top:15px; border-top: 1px dashed var(--primary); padding-top:15px;">
+          ${itemsHtml}
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:15px; border-top: 1px solid var(--primary); padding-top:10px; font-weight:bold; font-size:1.1rem; color: var(--primary);">
+          <span>TOTAL:</span>
+          <span>₹${cartTotal.toFixed(2)}</span>
+        </div>`;
+  }
+  
+  window.sendWhatsAppBill = async () => {
+    // 1. Save to Firebase
+    const pDate = new Date();
+    const dDate = new Date(); dDate.setDate(pDate.getDate() + 15);
     try {
       await addDoc(collection(db, "bills"), {
         userId: currentUserId,
-        customerName: custName,
-        phone: phone,
+        customerName: currentBillingCustomer.customerName,
+        phone: currentBillingCustomer.phone,
         items: cart,
         totalAmount: cartTotal,
-        purchaseDate: purchaseDate.toISOString(),
-        dueDate: dueDate.toISOString(),
-        status: 'unpaid' // Default is unpaid
+        purchaseDate: pDate.toISOString(),
+        dueDate: dDate.toISOString(),
+        status: 'unpaid'
       });
-      loadBills(); // Refresh lists
-    } catch(e) { console.error("Error saving bill", e); }
+      loadBills(); // refresh list
+    } catch(e) { console.error(e); }
 
-    // UPI Link
-    const myUpiId = "7997195592@ybl"; 
-    const myStoreName = "Sri Venkateswara";
+    // 2. Send WhatsApp
+    const shopName = shopDetails.shopName || "Sri Venkateswara";
+    const shopPhone = shopDetails.phoneNumber || "7997195592";
     
-    let msg = `🧾 *${myStoreName.toUpperCase()}*\n📞 7997195592\n\n👤 *Customer:* ${custName}\n📅 *Date:* ${purchaseDateStr}\n--------------------------\n`;
-    cart.forEach(item => { msg += `📦 *${item.name}* (${item.qty}kg) ➔ ₹${item.total.toFixed(2)}\n`; });
-    msg += `--------------------------\n💰 *TOTAL : ₹${cartTotal.toFixed(2)}*\n--------------------------\n\n`;
+    let msg = `🧾 *${shopName.toUpperCase()} BILL*\n📞 ${shopPhone}\n📅 ${pDate.toLocaleDateString('en-IN')}\n\n👤 Customer: *${currentBillingCustomer.customerName}*\n\n`;
+    cart.forEach(item => { msg += `📦 *${item.name}* (${item.qty}${item.type}) ➔ ₹${item.total.toFixed(2)}\n`; });
+    msg += `--------------------------\n💰 *TOTAL : ₹${cartTotal.toFixed(2)}*\n--------------------------\n\n⏳ *Due Date:* ${dDate.toLocaleDateString('en-IN')} (Pay within 15 days)\n`;
     
-    const upiLink = `upi://pay?pa=${myUpiId}&pn=${encodeURIComponent(myStoreName)}&am=${cartTotal.toFixed(2)}&cu=INR`;
-    msg += `⚡ *Pay securely via UPI:*\n${upiLink}\n\n⏳ *Due Date:* ${dueDate.toLocaleDateString('en-IN')} (Pay within 15 days)\n🙏 Thank you!`;
+    if(shopDetails.upiId) {
+      const upiLink = `upi://pay?pa=${shopDetails.upiId}&pn=${encodeURIComponent(shopName)}&am=${cartTotal.toFixed(2)}&cu=INR`;
+      msg += `⚡ *Pay securely via UPI:*\n${upiLink}\n\n`;
+    }
+    msg += `🙏 Thank you! Visit Again!`;
 
-    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/91${currentBillingCustomer.phone}?text=${encodeURIComponent(msg)}`, '_blank');
     
-    // Reset
-    cart = []; updateCartUI();
-    document.getElementById('qty').value = '';
-    document.getElementById('cust-name').value = '';
-    document.getElementById('cust-phone').value = '';
+    closeModal('preview-modal'); resetBilling();
   };
+  
+  // DOWNLOAD FIX: Use html2canvas for Gallery Compatibility
+  window.downloadBillImage = async () => {
+    const element = document.getElementById('bill-preview-container');
+    const custName = currentBillingCustomer.customerName.replace(/\s+/g, '_');
+    try {
+      const canvas = await html2canvas(element);
+      const url = canvas.toDataURL("image/png");
+      
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Bill_${custName}_${new Date().getTime()}.png`;
+      a.click();
+      alert("Downloading Bill Image. Check Gallery/Downloads.");
+    } catch(e) { alert("Failed to generate image download."); }
+  };
+  
+  function resetBilling() {
+    cart = []; updateCartUI();
+    currentBillingCustomer = null;
+  }
 
-  // --- 9. REMINDERS & ALL BILLS ---
+  // --- 11. REMINDERS & BILLS HISTORY ---
   window.loadBills = async () => {
     try {
       const q = query(collection(db, "bills"), where("userId", "==", currentUserId));
       const snapshot = await getDocs(q);
-      
       allBills = [];
       snapshot.forEach(doc => allBills.push({ id: doc.id, ...doc.data() }));
       
-      // Sort by descending purchase date
-      allBills.sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+      allBills.sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate)); // Sort by date
 
       renderReminders();
       renderAllBills();
@@ -653,120 +913,70 @@
   function renderReminders() {
     let dueHtml = '';
     const today = new Date();
-
     allBills.forEach(bill => {
       // Only unpaid
       if(bill.status === 'unpaid') {
         const dDate = new Date(bill.dueDate);
-        const pDate = new Date(bill.purchaseDate);
-        
-        // Calculate days left
         const diffTime = dDate - today;
         const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
         let isUrgent = daysLeft <= 5 && daysLeft >= 0;
         let rowClass = isUrgent ? 'urgent-row' : '';
-        let warningText = isUrgent ? `<br><small style="color:red; font-weight:bold;">⚠️ ${daysLeft} Days Left!</small>` : '';
-        let isOverdue = daysLeft < 0 ? `<br><small style="color:red; font-weight:bold;">Overdue!</small>` : '';
-
-        // Old bill reminder context (Shows purchase date)
+        
         dueHtml += `
           <tr class="${rowClass}">
-            <td><b>${bill.customerName}</b><br><small style="color:#aaa;">Purchased: ${pDate.toLocaleDateString('en-IN')}</small></td>
+            <td><b>${bill.customerName}</b></td>
             <td style="color:var(--primary); font-weight:bold;">₹${bill.totalAmount.toFixed(2)}</td>
-            <td>${dDate.toLocaleDateString('en-IN')} ${warningText} ${isOverdue}</td>
+            <td>${dDate.toLocaleDateString('en-IN')} ${isUrgent ? `<br><small style="color:red; font-weight:bold;">⚠️ ${daysLeft} Days!</small>` : ''}</td>
             <td>
-              <label class="switch">
-                <input type="checkbox" onchange="toggleBillStatus('${bill.id}', this.checked)">
-                <span class="slider"></span>
-              </label>
-              <br><small>Unpaid</small>
+              <label class="switch"><input type="checkbox" onchange="toggleBillStatus('${bill.id}', this.checked)"><span class="slider"></span></label><br><small>Unpaid</small>
             </td>
             <td>
-              <button class="${isUrgent ? 'btn-danger' : 'btn-warning'}" style="padding: 5px; font-size:0.8rem;" 
-                onclick="sendReminderWhatsApp('${bill.customerName}', '${bill.phone}', ${bill.totalAmount}, '${dDate.toISOString()}', ${isUrgent})">
-                💬 Remind
-              </button>
+              <button class="btn-icon" style="color:var(--warning);" onclick="sendReminderWhatsApp('${bill.customerName}', '${bill.phone}', ${bill.totalAmount}, '${dDate.toISOString()}', ${isUrgent})">💬 Remind</button>
+              <button class="btn-icon" style="color:var(--danger);" onclick="deleteBill('${bill.id}')" title="Delete">🗑️</button>
             </td>
           </tr>`;
       }
     });
-
     document.getElementById('due-bills-list').innerHTML = dueHtml || '<tr><td colspan="5" style="text-align:center;">No Pending Bills! 🎉</td></tr>';
   }
-
-  window.toggleBillStatus = async (billId, isChecked) => {
-    // If checked, it means Paid. If unchecked, Unpaid.
-    const newStatus = isChecked ? 'paid' : 'unpaid';
-    try {
-      await updateDoc(doc(db, "bills", billId), { status: newStatus });
-      loadBills(); // refresh
-    } catch(e) { alert("Failed to update status"); }
-  };
-
-  window.sendReminderWhatsApp = (name, phone, amount, dueDateIso, isUrgent) => {
-    const dDate = new Date(dueDateIso).toLocaleDateString('en-IN');
-    let msg = `🙏 Namaste *${name}* garu,\n\nSri Venkateswara nunchi mi bill amount *₹${amount}* pending undi. Due date: *${dDate}*.\n\n`;
-    
-    // Automatic 5-days reminder logic mapping
-    if(isUrgent) {
-      msg += `⚠️ *Urgent:* Due date ki inka koddi rojule undi (last 5 days). Vellu aythe tvaraga pay cheyandi.\n\n`;
-    } else {
-      msg += `Veelainantha tvaraga pay cheyagalaru.\n\n`;
-    }
-    
-    msg += `Payment link unna patha message lo UPI dwara pay cheyochu. Thank you!`;
-    
-    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
-  };
 
   function renderAllBills() {
     let allHtml = '';
     allBills.forEach(bill => {
       const pDate = new Date(bill.purchaseDate).toLocaleDateString('en-IN');
-      const dDate = new Date(bill.dueDate).toLocaleDateString('en-IN');
-      const statColor = bill.status === 'paid' ? 'var(--success)' : 'var(--danger)';
-      
       allHtml += `
         <tr>
-          <td><b>${bill.customerName}</b><br><small style="color:${statColor};">${bill.status.toUpperCase()}</small></td>
           <td>${pDate}</td>
+          <td><b>${bill.customerName}</b></td>
           <td>₹${bill.totalAmount.toFixed(2)}</td>
-          <td>${dDate}</td>
-          <td><button style="padding: 5px; font-size:0.8rem;" onclick="downloadBillTxt('${bill.id}')">💾 Download</button></td>
+          <td>${bill.status === 'paid' ? '✔️ PAID' : '❌ UNPAID'}</td>
         </tr>`;
     });
-    document.getElementById('all-bills-list').innerHTML = allHtml || '<tr><td colspan="5" style="text-align:center;">No History Found.</td></tr>';
+    document.getElementById('all-bills-list').innerHTML = allHtml || '<tr><td colspan="4" style="text-align:center;">No bills generated yet.</td></tr>';
   }
 
-  // Generate a simple text file for download
-  window.downloadBillTxt = (billId) => {
-    const bill = allBills.find(b => b.id === billId);
-    if(!bill) return;
+  window.toggleBillStatus = async (billId, isChecked) => {
+    try {
+      await updateDoc(doc(db, "bills", billId), { status: isChecked ? 'paid' : 'unpaid' });
+      loadBills(); // refresh list
+    } catch(e) { alert("Failed to update status"); }
+  };
+  
+  window.deleteBill = async (billId) => {
+    if(confirm("🗑️ Are you sure you want to delete this bill record from Reminders?")) {
+      try {
+        await deleteDoc(doc(db, "bills", billId));
+        loadBills();
+      } catch(e) { alert("Failed to delete bill"); }
+    }
+  };
 
-    let text = `=================================\n`;
-    text += `       SRI VENKATESWARA BILL     \n`;
-    text += `=================================\n`;
-    text += `Customer: ${bill.customerName}\n`;
-    text += `Phone: ${bill.phone}\n`;
-    text += `Purchase Date: ${new Date(bill.purchaseDate).toLocaleDateString('en-IN')}\n`;
-    text += `Due Date: ${new Date(bill.dueDate).toLocaleDateString('en-IN')}\n`;
-    text += `Status: ${bill.status.toUpperCase()}\n`;
-    text += `---------------------------------\n`;
-    bill.items.forEach(item => {
-      text += `${item.name} (${item.qty}kg) = Rs. ${item.total.toFixed(2)}\n`;
-    });
-    text += `---------------------------------\n`;
-    text += `TOTAL: Rs. ${bill.totalAmount.toFixed(2)}\n`;
-    text += `=================================\n`;
-
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `Bill_${bill.customerName}_${new Date(bill.purchaseDate).getTime()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
+  window.sendReminderWhatsApp = (name, phone, amount, dueDateIso, isUrgent) => {
+    const dDate = new Date(dueDateIso).toLocaleDateString('en-IN');
+    let msg = `🙏 Namaste *${name}* garu,\n\nOur Shop reminder. *₹${amount}* bill pending. Due date: *${dDate}*.\n`;
+    if(isUrgent) msg += `⚠️ *Last 5 Days:* Pay soon.\n`;
+    msg += `Payment paths lo UPI unchi pay cheyachu. Visit again!`;
+    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
 </script>
