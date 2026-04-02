@@ -706,23 +706,50 @@
           });
   };
 
-  window.autoMapOCRText = (text) => {
+    window.autoMapOCRText = (text) => {
       ocrScannedItems = [];
       const lines = text.split('\n');
+
       lines.forEach(line => {
-          if(line.trim().length > 2) {
-              const lowerLine = line.toLowerCase();
+          // 1. Remove special characters and garbage symbols. Keep only letters, numbers, and spaces.
+          let cleanLine = line.replace(/[^a-zA-Z0-9\s]/g, '').trim();
+
+          // 2. Only process if the line has at least 3 characters and contains alphabets
+          if(cleanLine.length > 2 && /[a-zA-Z]/.test(cleanLine)) {
+              const lowerLine = cleanLine.toLowerCase();
+              
+              // 3. Check if this line matches any product in our inventory
               let match = allProducts.find(p => lowerLine.includes(p.name.toLowerCase()));
-              ocrScannedItems.push({
-                  id: match ? match.id : 'ocr-' + Date.now() + Math.random(),
-                  name: match ? match.name : line.trim(),
-                  qty: 1,
-                  price: match ? match.price : 0,
-                  type: match ? (match.type || 'kg') : 'pcs'
-              });
+
+              if (match) {
+                  // If it perfectly matches our product, add it automatically
+                  ocrScannedItems.push({
+                      id: match.id,
+                      name: match.name,
+                      qty: 1,
+                      price: match.price,
+                      type: match.type || 'kg'
+                  });
+              } else if (cleanLine.length > 3) {
+                  // If no exact match, but it's a valid readable word (no garbage), add it for manual review
+                  ocrScannedItems.push({
+                      id: 'ocr-' + Date.now() + Math.random(),
+                      name: cleanLine, 
+                      qty: 1,
+                      price: 0,
+                      type: 'pcs'
+                  });
+              }
           }
       });
-      renderOcrTable();
+
+      // If nothing useful was found after filtering
+      if (ocrScannedItems.length === 0) {
+          alert("⚠️ Could not find any readable items or matching products. Please try scanning a clearer bill.");
+          document.getElementById('ocr-results-container').style.display = 'none';
+      } else {
+          renderOcrTable();
+      }
   };
 
   window.renderOcrTable = () => {
