@@ -1,473 +1,1051 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sri Venkateswara Billing System - Pro</title>
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <style>
-        /* General Styles */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; }
-        .container { max-width: 1200px; margin: auto; padding: 20px; }
-        
-        /* Login Screen */
-        #loginScreen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #1f2937; color: white; }
-        .login-box { background: white; padding: 30px; border-radius: 8px; color: black; text-align: center; width: 300px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .login-box input { width: 90%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 4px; }
-        .login-box button { width: 100%; background: #3b82f6; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
-        
-        /* Navbar & Top Menu */
-        .navbar { background: #1f2937; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 1000; }
-        .user-info { font-size: 14px; background: #374151; padding: 5px 10px; border-radius: 5px; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content { display: none; position: absolute; background-color: white; color: black; min-width: 200px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1000; top: 100%; right: 0; border-radius: 5px; overflow: hidden; }
-        .dropdown:hover .dropdown-content { display: block; }
-        .dropdown-content a { color: black; padding: 12px 16px; text-decoration: none; display: block; cursor: pointer; border-bottom: 1px solid #eee; }
-        .dropdown-content a:hover { background-color: #f1f1f1; }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sri Venkateswara Billing - Advanced Sequential Workflow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.0.2/dist/tesseract.min.js"></script>
 
-        /* Sections */
-        #mainApp { display: none; }
-        .section { background: white; padding: 20px; margin-top: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: none; }
-        .active-section { display: block; }
-        
-        /* Tables & Inputs */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-        th { background-color: #f3f4f6; }
-        input[type="text"], input[type="number"], input[type="date"] { padding: 8px; width: 90%; border: 1px solid #ccc; border-radius: 4px; }
-        
-        /* Buttons */
-        button { background: #3b82f6; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 5px; margin: 2px; }
-        button:hover { background: #2563eb; }
-        .danger-btn { background: #ef4444; }
-        .danger-btn:hover { background: #dc2626; }
-        .success-btn { background: #10b981; }
-        .success-btn:hover { background: #059669; }
-        .wa-btn { background: #25D366; }
-        .wa-btn:hover { background: #128C7E; }
+  <style>
+    /* --- FUTURISTIC THEME & VARIABLES --- */
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --text-color: #ffffff;
+      --primary: #00e5ff;
+      --primary-hover: #00b3cc;
+      --danger: #ff4b2b;
+      --success: #00b09b;
+      --warning: #ffb100;
+    }
 
-        /* Camera */
-        #video-container { margin-top: 15px; display: none; text-align: center; }
-        video { width: 100%; max-width: 400px; border: 2px solid #ccc; border-radius: 8px; }
-        canvas { display: none; }
-        #ocr-status { font-weight: bold; color: #d97706; margin-top: 10px; }
-        #qrcode { margin-top: 20px; padding: 10px; background: white; display: inline-block; }
-    </style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-color);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 20px;
+      overflow-x: hidden;
+      transition: all 0.5s ease;
+    }
+
+    /* --- ANIMATIONS --- */
+    @keyframes slideIn {
+      0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .app-container {
+      width: 100%;
+      max-width: 550px; 
+      animation: slideIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+      transition: max-width 0.5s ease;
+    }
+
+    .app-container.landscape { max-width: 95%; }
+
+    /* --- TOP HEADER & ICONS --- */
+    .top-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      border-radius: 15px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 10000; /* Z-Index Fix */
+    }
+
+    .header-icons { display: flex; gap: 15px; align-items: center; font-size: 1.2rem; }
+    .icon-btn { cursor: pointer; transition: 0.3s; background: transparent; border: none; color: white; }
+    .icon-btn:hover { color: var(--primary); transform: scale(1.1); }
+
+    /* Search Bar Fixes */
+    .search-box { flex-grow: 1; margin: 0 15px; position: relative; }
+    .search-box input { margin: 0; padding: 10px 15px; width: 100%; }
+    .search-results {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: #0f2027; border: 1px solid var(--primary);
+      border-radius: 8px; max-height: 200px; overflow-y: auto;
+      z-index: 9999; display: none; box-shadow: 0 5px 15px rgba(0,0,0,0.8);
+    }
+    .search-results div { padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; font-size: 0.9rem; }
+    .search-results div:hover { background: rgba(0,229,255,0.2); }
+
+    /* 3 Dots Menu */
+    .more-menu {
+      position: absolute; top: 50px; right: 10px;
+      background: #1a2a3a; border: 1px solid var(--glass-border);
+      border-radius: 8px; display: none; flex-direction: column;
+      z-index: 1000; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    }
+    .more-menu button {
+      background: transparent; margin: 0; padding: 10px 20px;
+      border-radius: 0; border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: left; font-size: 0.9rem;
+    }
+    .more-menu button:hover { background: rgba(255,255,255,0.1); }
+
+    /* --- GLASSMORPHISM CARDS --- */
+    .glass-card {
+      background: var(--glass-bg); backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border);
+      border-radius: 20px; padding: 25px; margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    }
+    
+    .app-section { display: none; }
+    .app-section.active { display: block; animation: slideIn 0.3s ease forwards; }
+
+    /* --- INPUTS & BUTTONS --- */
+    input, select, button {
+      width: 100%; margin: 10px 0; padding: 15px;
+      border-radius: 12px; border: none; outline: none;
+      font-family: 'Poppins', sans-serif; box-sizing: border-box;
+      transition: all 0.3s ease; font-size: 1rem;
+    }
+    input, select {
+      background: rgba(255, 255, 255, 0.08); color: var(--text-color);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    input:focus, select:focus { border-color: var(--primary); background: rgba(255, 255, 255, 0.12); }
+    input::placeholder { color: #a0a0a0; }
+    select option { background: #1a2a3a; color: white; }
+
+    button { background: var(--primary); color: #0f2027; font-weight: 600; cursor: pointer; }
+    button:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-warning { background: var(--warning); color: #000; }
+
+    /* --- PRODUCT GRID --- */
+    .product-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 15px; margin-top: 15px;
+    }
+    .product-icon-card {
+      background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border);
+      border-radius: 12px; padding: 15px 10px; text-align: center;
+      position: relative; transition: 0.3s; cursor: pointer;
+    }
+    .product-icon-card:hover { border-color: var(--primary); transform: scale(1.03); }
+    .product-icon-card .icon-img { font-size: 2.5rem; margin-bottom: 5px; }
+    .product-icon-card .p-name { font-weight: 600; font-size: 1rem; }
+    .product-icon-card .p-price { color: var(--primary); font-size: 0.9rem; margin-top: 5px; }
+    
+    .product-icon-card .cart-qty-badge {
+      position: absolute; bottom: 5px; left: 5px;
+      background: var(--success); color: #fff;
+      font-size: 0.8rem; padding: 2px 6px; border-radius: 10px; display: none;
+    }
+
+    /* --- TOGGLE SWITCH --- */
+    .switch { position: relative; display: inline-block; width: 60px; height: 30px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: var(--danger); transition: .4s; border-radius: 34px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 22px; width: 22px;
+      left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--success); }
+    input:checked + .slider:before { transform: translateX(30px); }
+
+    .bill-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9rem; }
+    .bill-table th, .bill-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+    .bill-table th { color: var(--primary); }
+    .urgent-row { background: rgba(255, 75, 43, 0.2); }
+
+    /* --- BILL PREVIEW (Futuristic Dark Theme) --- */
+    #bill-preview-container {
+      border: 2px solid var(--primary); border-radius: 15px; padding: 20px;
+      background: #0d1b2a; 
+      font-family: 'Courier New', Courier, monospace;
+      color: #e0e0e0; line-height: 1.5; box-shadow: 0 0 20px rgba(0, 229, 255, 0.15);
+      position: relative;
+    }
+    #bill-preview-header {
+      text-align: center; border-bottom: 1px dashed var(--primary);
+      padding-bottom: 15px; margin-bottom: 15px;
+    }
+    .bill-item-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    
+    #qr-code-container {
+      background: #fff; padding: 10px; border-radius: 10px; 
+      display: inline-block; margin-top: 10px;
+    }
+
+    /* --- MODALS --- */
+    .modal {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+      z-index: 2000; display: none; justify-content: center; align-items: center;
+      animation: slideIn 0.3s ease;
+    }
+    .modal-content {
+      background: #1a2a3a; border-radius: 20px; padding: 30px; 
+      width: 90%; max-width: 450px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+      position: relative; max-height: 90vh; overflow-y: auto;
+    }
+    .close-modal {
+      position: absolute; top: 15px; right: 15px;
+      cursor: pointer; color: #fff; font-size: 1.5rem;
+    }
+    
+    .modal-nav { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+
+    #dashboard { display: none; }
+
+    /* New Camera & OCR Styles */
+    #camera-container { display: none; text-align: center; margin-top: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 12px; }
+    #camera-video { width: 100%; border-radius: 12px; border: 2px solid var(--primary); }
+    .ocr-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+    .ocr-table th, .ocr-table td { padding: 5px; border: 1px solid var(--glass-border); text-align: center; }
+    .ocr-table input { width: 100%; padding: 5px; margin: 0; border-radius: 5px; background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.3); }
+  </style>
 </head>
 <body>
 
-    <div id="loginScreen">
-        <div class="login-box">
-            <h2>Sri Venkateswara Shop</h2>
-            <p>Admin Login</p>
-            <input type="text" id="loginName" placeholder="Enter Name">
-            <input type="number" id="loginMobile" placeholder="Enter Mobile Number">
-            <input type="text" id="loginLocation" placeholder="Enter Location">
-            <button onclick="login()">Login</button>
-        </div>
+  <div class="app-container" id="app-container">
+    
+    <div class="glass-card" id="auth-section">
+      <h2 id="auth-title" style="text-align: center; margin-top: 0;">Welcome Back 🚀</h2>
+      <input type="email" id="email" placeholder="📧 Email Address" autocomplete="off">
+      <input type="password" id="password" placeholder="🔒 Password">
+      <button id="auth-btn" onclick="handleAuth()">Login</button>
+      <p style="text-align:center; font-size: 14px; cursor: pointer; color: var(--primary); margin-top: 20px;" onclick="toggleAuthMode()" id="toggle-txt">New User? Tap to Register</p>
     </div>
 
-    <div id="mainApp">
-        <div class="navbar">
-            <div class="user-info" id="displayUserInfo">User: Name | Loc: None</div>
-            <h2>SV Billing</h2>
-            <div class="dropdown">
-                <button style="font-size: 16px; padding: 10px;">☰ Features Menu</button>
-                <div class="dropdown-content">
-                    <a onclick="showSection('billing')">📝 New Bill & Camera</a>
-                    <a onclick="showSection('inventory')">📦 Manage Products</a>
-                    <a onclick="showSection('customers')">👥 Manage Customers</a>
-                    <a onclick="showSection('history')">📜 All Bills & Reminders</a>
-                    <a onclick="logout()" style="color: red;">🚪 Logout</a>
-                </div>
-            </div>
+    <div id="dashboard">
+      
+      <div class="top-header">
+        <div class="header-icons">
+          <button class="icon-btn" onclick="toggleOrientation()">🔄</button>
+        </div>
+        
+        <div class="search-box">
+          <input type="text" id="global-search" placeholder="🔍 Search Products/Customers..." oninput="handleGlobalSearch()" autocomplete="off">
+          <div class="search-results" id="search-results"></div>
         </div>
 
-        <div class="container">
-            
-            <div id="billing" class="section active-section">
-                <h3>Create New Bill</h3>
-                
-                <div style="margin-bottom: 15px; background: #f9fafb; padding: 10px; border-radius: 5px;">
-                    <strong>Customer Details:</strong>
-                    <input type="text" id="billCustName" placeholder="Customer Name" style="width: 30%;">
-                    <input type="number" id="billCustMobile" placeholder="Mobile Number" style="width: 30%;">
-                    <input type="date" id="billDueDate" title="Due Date for Reminder">
-                </div>
-
-                <button class="success-btn" onclick="startCamera()">📷 Open Camera (Auto Bill)</button>
-                <button onclick="addManualRow()">➕ Add Item Manually</button>
-                
-                <div id="video-container">
-                    <video id="video" autoplay></video><br>
-                    <button class="success-btn" onclick="captureImage()">📸 Capture & Scan text</button>
-                    <button class="danger-btn" onclick="stopCamera()">Cancel</button>
-                </div>
-                <canvas id="canvas"></canvas>
-                <div id="ocr-status"></div>
-
-                <div id="ocr-results" style="display: none; margin-top: 20px; border: 2px dashed #f59e0b; padding: 10px;">
-                    <h4>Review Scanned Items</h4>
-                    <table id="ocrTable">
-                        <thead><tr><th>Item Name</th><th>Weight/Qty</th><th>Price (₹)</th><th>Action</th></tr></thead>
-                        <tbody id="ocrTableBody"></tbody>
-                    </table>
-                    <button class="success-btn" onclick="moveOcrToFinalBill()" style="margin-top: 10px;">✅ Approve to Final Bill</button>
-                </div>
-
-                <h4 style="margin-top: 30px;">Final Bill Items</h4>
-                <table id="finalBillTable">
-                    <thead><tr><th>Item Name</th><th>Weight/Qty</th><th>Price (₹)</th><th>Action</th></tr></thead>
-                    <tbody id="finalBillBody"></tbody>
-                </table>
-                <h3>Total: ₹<span id="billTotal">0</span></h3>
-                
-                <button class="success-btn" onclick="generateBill()">🧾 Generate Bill & QR</button>
-                <div id="qrcode"></div>
-            </div>
-
-            <div id="inventory" class="section">
-                <h3>Manage Products (Global Search)</h3>
-                <input type="text" id="prodSearch" placeholder="Search Product..." onkeyup="filterInventory()" style="margin-bottom:10px;">
-                <br>
-                <input type="text" id="prodName" placeholder="Product Name" style="width:40%;">
-                <input type="number" id="prodPrice" placeholder="Price/Unit" style="width:30%;">
-                <button onclick="addProduct()">Add</button>
-                
-                <table id="inventoryTable">
-                    <thead><tr><th>Name</th><th>Price/Unit (₹)</th><th>Action</th></tr></thead>
-                    <tbody id="inventoryBody"></tbody>
-                </table>
-            </div>
-
-            <div id="customers" class="section">
-                <h3>Manage Customers</h3>
-                <input type="text" id="custSearch" placeholder="Search Customer..." onkeyup="filterCustomers()" style="margin-bottom:10px;">
-                <table id="customersTable">
-                    <thead><tr><th>Name</th><th>Mobile</th><th>Total Bills</th></tr></thead>
-                    <tbody id="customersBody"></tbody>
-                </table>
-            </div>
-
-            <div id="history" class="section">
-                <h3>All Bills History & Reminders</h3>
-                <table id="historyTable">
-                    <thead>
-                        <tr>
-                            <th>Bill ID</th>
-                            <th>Customer</th>
-                            <th>Date / Due Date</th>
-                            <th>Amount (₹)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyBody"></tbody>
-                </table>
-            </div>
-
+        <div class="header-icons">
+          <button class="icon-btn" onclick="toggleMenu()">⋮</button>
         </div>
+
+        <div class="more-menu" id="more-menu">
+          <button onclick="openModal('shop-modal')">🏢 Shop Details (Owner)</button>
+          <button onclick="switchSection('customer-management')">👥 Manage Customers</button>
+          <button onclick="switchSection('bills-history')">📁 All Bills History</button>
+          <button onclick="alert('Coming Soon')">💸 Expense Tracking</button>
+        </div>
+      </div>
+
+      <div class="glass-card" style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px;">
+        <h2 style="margin: 0; font-size: 1.5rem;">Dashboard ✨</h2>
+        <button class="btn-danger" style="width: auto; padding: 10px 20px;" onclick="logout()">Logout</button>
+      </div>
+
+      <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; margin-bottom: 20px;">
+        <button style="background: var(--success);" onclick="switchSection('new-bill-section')">🧾 New Bill</button>
+        <button onclick="switchSection('products-section')">📦 Products</button>
+        <button style="background: var(--warning);" onclick="switchSection('reminders-section')">⏰ Reminders</button>
+      </div>
+
+      <div class="app-section" id="products-section">
+        <div class="glass-card">
+          <h3 style="margin-top:0;">📦 Products & Inventory</h3>
+          <button onclick="openProductModal('add')">➕ Add New Product</button>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Your Inventory (Click 📝 to Edit)</h4>
+          <div id="products-list" class="product-grid"><i>Loading...</i></div>
+        </div>
+      </div>
+
+      <div class="app-section active" id="new-bill-section">
+        <div class="glass-card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+            <h3 style="margin:0;">🧾 Create New Bill</h3>
+            <button style="width:auto; padding: 8px 12px; background:#a855f7; margin:0;" onclick="startCamera()">📷 Smart Scan</button>
+          </div>
+          
+          <p style="font-size:0.9rem; color:#ccc;">Step 1: Click products or Scan bill to add.</p>
+          
+          <div id="camera-container">
+            <video id="camera-video" autoplay></video>
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button class="btn-success" onclick="captureImage()">📸 Capture Text</button>
+                <button class="btn-danger" onclick="stopCamera()">Cancel</button>
+            </div>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+            <p id="ocr-status" style="color:var(--warning); font-weight:bold; margin-top:10px;"></p>
+          </div>
+
+          <div id="ocr-results-container" style="display:none; margin-top:15px; border: 2px dashed var(--warning); padding:10px; border-radius:10px;">
+              <h4 style="margin-top:0; color:var(--warning);">Review Scanned Items</h4>
+              <div style="overflow-x:auto;">
+                  <table class="ocr-table">
+                      <thead><tr><th>Name</th><th>Qty</th><th>Price(₹)</th><th>❌</th></tr></thead>
+                      <tbody id="ocr-table-body"></tbody>
+                  </table>
+              </div>
+              <button class="btn-success" style="margin-top:15px;" onclick="moveOcrToCart()">✅ Approve & Add to Cart</button>
+          </div>
+
+          <div id="new-bill-products-list" class="product-grid" style="max-height: 250px; overflow-y: auto;"><i>Loading products...</i></div>
+          
+          <h4 style="margin-top: 25px; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px;">Cart Items</h4>
+          <div id="cart-list" style="margin-bottom: 15px; color: #ccc;"><i>Cart is empty.</i></div>
+          
+          <div style="background: rgba(0, 229, 255, 0.1); padding: 15px; border-radius: 12px; border: 1px solid rgba(0, 229, 255, 0.3); margin-bottom: 15px;">
+            <h3 style="margin: 0; text-align: right; color: var(--primary);">Total: ₹<span id="total-amount">0.00</span></h3>
+          </div>
+          
+          <button class="btn-success" style="display:none;" id="select-customer-btn" onclick="openModal('select-customer-modal')">👤 Step 2: Select Customer</button>
+        </div>
+      </div>
+
+      <div class="app-section" id="customer-management">
+        <div class="glass-card">
+          <h3 style="margin-top:0;">👥 Manage Customers</h3>
+          <button onclick="openCustomerModal('add')">👤 Add New Customer</button>
+          <div id="customers-list" style="margin-top:15px;"><i>Loading...</i></div>
+        </div>
+      </div>
+
+      <div class="app-section" id="bills-history">
+        <div class="glass-card">
+          <h3 style="margin-top:0;">📁 All Bills History</h3>
+          <div style="overflow-x: auto;">
+            <table class="bill-table">
+              <thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="all-bills-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-section" id="reminders-section">
+        <div class="glass-card">
+          <h3 style="margin-top:0;">⏰ Reminders & Due Bills</h3>
+          <div style="overflow-x: auto;">
+            <table class="bill-table">
+              <thead><tr><th>Customer</th><th>Amount</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody id="due-bills-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
+  </div>
 
-<script>
-    // --- GLOBAL DATA ---
-    let currentUser = JSON.parse(localStorage.getItem('svUser'));
-    let products = JSON.parse(localStorage.getItem('svProducts')) || [];
-    let customers = JSON.parse(localStorage.getItem('svCustomers')) || [];
-    let billsHistory = JSON.parse(localStorage.getItem('svBills')) || [];
-    let currentFinalBill = [];
-    let ocrScannedItems = [];
+  <div class="modal" id="product-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('product-modal')">&times;</span>
+      <h3 id="product-modal-title">Product Details</h3>
+      <input type="hidden" id="edit-prod-id">
+      <input type="text" id="prod-name" placeholder="🏷️ Product Name" autocomplete="off">
+      <input type="number" id="prod-price" placeholder="💵 Price per Unit" autocomplete="off">
+      <select id="prod-type">
+        <option value="kg">⚖️ per Kg</option>
+        <option value="pcs">📦 per Pcs</option>
+      </select>
+      <button id="save-product-btn" onclick="saveProduct()">Save Product</button>
+      <button id="delete-product-btn" class="btn-danger" style="display:none;" onclick="deleteProductFromModal()">Delete Product</button>
+    </div>
+  </div>
 
-    // --- INITIALIZATION & LOGIN ---
-    window.onload = function() {
-        if(currentUser) {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            updateUserMenu();
-        }
+  <div class="modal" id="weight-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('weight-modal')">&times;</span>
+      <h3 id="weight-modal-title">Enter Quantity</h3>
+      <p id="weight-modal-product-info" style="color:var(--primary); font-weight:bold;"></p>
+      <input type="hidden" id="current-prod-id-weight">
+      <input type="number" id="qty-input" placeholder="0.00" step="0.01" inputmode="decimal" autocomplete="off">
+      <button onclick="finalizeAddToCart()">Add to Cart ✔️</button>
+    </div>
+  </div>
+
+  <div class="modal" id="customer-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('customer-modal')">&times;</span>
+      <h3 id="customer-modal-title">Customer Details</h3>
+      <input type="hidden" id="edit-cust-id">
+      <input type="text" id="cust-name-modal" placeholder="👤 Full Name" autocomplete="off">
+      <input type="number" id="cust-phone-modal" placeholder="📞 WhatsApp (10 digits)" autocomplete="off">
+      <button id="save-customer-btn" onclick="saveCustomer()">Save</button>
+    </div>
+  </div>
+
+  <div class="modal" id="select-customer-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('select-customer-modal')">&times;</span>
+      <h3>👤 Step 2: Select Customer</h3>
+      <div id="billing-customer-list" style="max-height: 200px; overflow-y: auto;"><i>Loading...</i></div>
+      <button class="btn-success" style="margin-top:20px;" onclick="closeModal('select-customer-modal'); openCustomerModal('add');">➕ Add New Customer</button>
+    </div>
+  </div>
+
+  <div class="modal" id="shop-modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeModal('shop-modal')">&times;</span>
+      <h3>🏢 Shop (Owner) Details</h3>
+      <input type="text" id="shop-name-modal" placeholder="🏢 Shop Name" autocomplete="off">
+      <input type="text" id="shop-owner-modal" placeholder="👤 Owner Name" autocomplete="off">
+      <input type="number" id="shop-phone-modal" placeholder="📞 Phone Number" autocomplete="off">
+      <input type="text" id="shop-upi-modal" placeholder="⚡ UPI ID (e.g., number@ybl)" autocomplete="off">
+      <button onclick="saveShopDetails()">Save Details</button>
+    </div>
+  </div>
+
+  <div class="modal" id="preview-modal">
+    <div class="modal-content" style="max-width: 550px;">
+      <span class="close-modal" onclick="closeModal('preview-modal')">&times;</span>
+      <h3 style="color:#fff;">📋 Step 3: Bill Preview</h3>
+      
+      <div id="bill-preview-container">
+        </div>
+
+      <div class="modal-nav">
+        <button style="background: var(--warning); color: #000;" onclick="downloadBillImage()">💾 Download (Gallery)</button>
+        <button style="background: #25D366; color: white;" onclick="sendWhatsAppBill()">📲 WhatsApp Send</button>
+      </div>
+    </div>
+  </div>
+
+<script type="module">
+  // --- 1. FIREBASE SETUP ---
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, updateDoc, query, where, orderBy, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDMSGPEngVmGtTRfcnIC4unH7Rh3FwgcRE",
+    authDomain: "sv-billing-250c2.firebaseapp.com",
+    projectId: "sv-billing-250c2",
+    storageBucket: "sv-billing-250c2.firebasestorage.app",
+    messagingSenderId: "847927101892",
+    appId: "1:847927101892:web:800c182fe47f133d537c91"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // --- 2. GLOBAL VARIABLES ---
+  let isLoginMode = true;
+  let currentUserId = null;
+  let cart = [];
+  let cartTotal = 0;
+  let allProducts = [];
+  let allCustomers = [];
+  let shopDetails = {};
+  let currentBillingCustomer = null;
+  let allBills = [];
+
+  // --- NEW VARIABLES FOR CAMERA OCR ---
+  let cameraStream = null;
+  let ocrScannedItems = [];
+
+  // --- 3. UI INTERACTIONS ---
+  window.switchSection = (sectionId) => {
+    document.querySelectorAll('.app-section').forEach(s => s.classList.remove('active'));
+    document.getElementById(sectionId).classList.add('active');
+  };
+  
+  window.openModal = (modalId) => {
+    document.getElementById(modalId).style.display = 'flex';
+  };
+  
+  window.closeModal = (modalId) => {
+    document.getElementById(modalId).style.display = 'none';
+  };
+
+  window.toggleOrientation = () => { document.getElementById('app-container').classList.toggle('landscape'); };
+  
+  window.toggleMenu = () => {
+    const menu = document.getElementById('more-menu');
+    menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+  };
+
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.search-box')) document.getElementById('search-results').style.display = 'none';
+  });
+
+  // --- 4. AUTHENTICATION ---
+  window.toggleAuthMode = () => {
+    isLoginMode = !isLoginMode;
+    document.getElementById('auth-title').innerText = isLoginMode ? "Welcome Back 🚀" : "Create Account ✨";
+  document.getElementById('auth-btn').innerText = isLoginMode ? "Login" : "Register";
+    document.getElementById('toggle-txt').innerText = isLoginMode ? "New User? Tap to Register" : "Have account? Login";
+  };
+
+  window.handleAuth = async () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    if(!email || !password) return alert("⚠️ Please enter valid email and password");
+    try {
+      if(isLoginMode) await signInWithEmailAndPassword(auth, email, password);
+      else await createUserWithEmailAndPassword(auth, email, password);
+    } catch(error) { alert("❌ Error: " + error.message); }
+  };
+
+  window.logout = () => signOut(auth);
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUserId = user.uid;
+      document.getElementById('auth-section').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadShopDetails();
+      loadProducts(); 
+      loadCustomers();
+      loadBills();
+    } else {
+      currentUserId = null;
+      document.getElementById('auth-section').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+    }
+  });
+
+  // --- 5. SEARCH BAR FIX ---
+  window.handleGlobalSearch = () => {
+    const val = document.getElementById('global-search').value.toLowerCase();
+    const resBox = document.getElementById('search-results');
+    if(val.length < 2) { resBox.style.display = 'none'; return; }
+    
+    let results = '';
+    allProducts.forEach(p => {
+      if(p.name.toLowerCase().includes(val)) { 
+        results += `<div onclick="quickAddProduct('${p.id}')">📦 Product: ${p.name} (₹${p.price})</div>`; 
+      }
+    });
+    allCustomers.forEach(c => {
+      if(c.customerName.toLowerCase().includes(val) || c.phone.includes(val)) { 
+        results += `<div onclick="quickSelectCustomer('${c.id}')">👤 Customer: ${c.customerName}</div>`; 
+      }
+    });
+    
+    resBox.innerHTML = results || '<div style="color:#aaa;">No results found</div>';
+    resBox.style.display = 'block';
+  };
+
+  window.quickAddProduct = (id) => {
+    switchSection('new-bill-section');
+    openWeightModal(id);
+    document.getElementById('global-search').value = '';
+    document.getElementById('search-results').style.display = 'none';
+  };
+
+  window.quickSelectCustomer = (id) => {
+    currentBillingCustomer = allCustomers.find(c => c.id === id);
+    alert(`Customer ${currentBillingCustomer.customerName} selected for billing!`);
+    document.getElementById('global-search').value = '';
+    document.getElementById('search-results').style.display = 'none';
+    if(cart.length > 0) { renderBillPreview(); openModal('preview-modal'); }
+  };
+
+  // --- 6. SHOP DETAILS ---
+  window.saveShopDetails = async () => {
+    const data = {
+      shopName: document.getElementById('shop-name-modal').value,
+      ownerName: document.getElementById('shop-owner-modal').value,
+      phoneNumber: document.getElementById('shop-phone-modal').value,
+      upiId: document.getElementById('shop-upi-modal').value
     };
+    try {
+      await setDoc(doc(db, "shopDetails", currentUserId), data);
+      shopDetails = data;
+      alert("Shop details saved successfully!");
+      closeModal('shop-modal');
+    } catch(e) { alert("Failed to save details"); }
+  };
+  
+  async function loadShopDetails() {
+    try {
+      const docRef = doc(db, "shopDetails", currentUserId);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) { 
+        shopDetails = docSnap.data(); 
+        document.getElementById('shop-name-modal').value = shopDetails.shopName || '';
+        document.getElementById('shop-owner-modal').value = shopDetails.ownerName || '';
+        document.getElementById('shop-phone-modal').value = shopDetails.phoneNumber || '';
+        document.getElementById('shop-upi-modal').value = shopDetails.upiId || '';
+      }
+    } catch(e) { console.error("Error loading shop details", e); }
+  }
 
-    function login() {
-        let name = document.getElementById('loginName').value.trim();
-        let mobile = document.getElementById('loginMobile').value.trim();
-        let loc = document.getElementById('loginLocation').value.trim();
+  // --- 7. PRODUCTS ---
+   window.openProductModal = (mode, prodId) => {
+    const title = document.getElementById('product-modal-title');
+    const delBtn = document.getElementById('delete-product-btn');
+    if(mode === 'add') {
+      title.innerText = "➕ Add New Product";
+      document.getElementById('edit-prod-id').value = '';
+      document.getElementById('prod-name').value = '';
+      document.getElementById('prod-price').value = '';
+      document.getElementById('prod-type').value = 'kg';
+      delBtn.style.display = 'none';
+    } else {
+      title.innerText = "📝 Edit Product";
+      const p = allProducts.find(prod => prod.id === prodId);
+      document.getElementById('edit-prod-id').value = prodId;
+      document.getElementById('prod-name').value = p.name;
+      document.getElementById('prod-price').value = p.price;
+      document.getElementById('prod-type').value = p.type || 'kg';
+      delBtn.style.display = 'block';
+    }
+    openModal('product-modal');
+  };
+
+  window.saveProduct = async () => {
+    const id = document.getElementById('edit-prod-id').value;
+    const name = document.getElementById('prod-name').value.trim();
+    const price = parseFloat(document.getElementById('prod-price').value);
+    const type = document.getElementById('prod-type').value;
+    if(!name || !price) return alert("⚠️ Enter Name and Price!");
+    
+    try {
+      if(id) await updateDoc(doc(db, "products", id), { name, price, type });
+      else await addDoc(collection(db, "products"), { userId: currentUserId, name, price, type });
+      loadProducts();
+      closeModal('product-modal');
+    } catch(error) { alert("❌ Failed to save!"); } 
+  };
+
+  window.loadProducts = async () => {
+    try {
+      const q = query(collection(db, "products"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      allProducts = [];
+      let gridHtml = ''; let billingGridHtml = '';
+      
+      snapshot.forEach(doc => {
+        const p = doc.data();
+        allProducts.push({ id: doc.id, ...p });
+        const typeStr = p.type || 'kg'; 
         
-        if(name && mobile && loc) {
-            currentUser = { name, mobile, loc };
-            localStorage.setItem('svUser', JSON.stringify(currentUser));
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'block';
-            updateUserMenu();
+        gridHtml += `
+          <div class="product-icon-card">
+            <button class="icon-btn" style="position:absolute; top:5px; right:5px; color:#ccc;" onclick="openProductModal('edit', '${doc.id}')">📝</button>
+            <div class="icon-img">📦</div>
+            <div class="p-name">${p.name}</div>
+            <div class="p-price">₹${p.price}/${typeStr}</div>
+          </div>`;
+          
+        billingGridHtml += `
+          <div class="product-icon-card" onclick="openWeightModal('${doc.id}')">
+            <div class="icon-img">📦</div>
+            <div class="p-name">${p.name}</div>
+            <div class="p-price">₹${p.price}/${typeStr}</div>
+            <div class="cart-qty-badge" id="cart-badge-${doc.id}">0</div>
+          </div>`;
+      });
+      document.getElementById('products-list').innerHTML = gridHtml || "<i>Add products first.</i>";
+      document.getElementById('new-bill-products-list').innerHTML = billingGridHtml || "<i>Add products in Products tab.</i>";
+      updateProductGridBadges();
+    } catch (error) { console.error(error); }
+  };
+
+  // --- NEW: CAMERA & OCR LOGIC ---
+  window.startCamera = () => {
+      document.getElementById('camera-container').style.display = 'block';
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(stream => { 
+              cameraStream = stream; 
+              document.getElementById('camera-video').srcObject = stream; 
+          })
+          .catch(err => alert("Camera permission denied or error: " + err));
+  };
+
+  window.stopCamera = () => {
+      if(cameraStream) cameraStream.getTracks().forEach(t => t.stop());
+      document.getElementById('camera-container').style.display = 'none';
+  };
+
+  window.captureImage = () => {
+      const video = document.getElementById('camera-video');
+      const canvas = document.getElementById('camera-canvas');
+      canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      stopCamera();
+      processOCR(canvas.toDataURL('image/png'));
+  };
+
+  window.processOCR = (imageData) => {
+      document.getElementById('camera-container').style.display = 'block';
+      document.getElementById('camera-video').style.display = 'none';
+      document.getElementById('ocr-status').innerText = "⏳ Scanning Bill Text... Please wait.";
+      
+      Tesseract.recognize(imageData, 'eng')
+          .then(({ data: { text } }) => {
+              document.getElementById('ocr-status').innerText = "✅ Scan Complete!";
+              setTimeout(() => { 
+                  document.getElementById('camera-container').style.display = 'none'; 
+                  document.getElementById('camera-video').style.display = 'block'; 
+                  document.getElementById('ocr-status').innerText = "";
+              }, 2000);
+              autoMapOCRText(text);
+          }).catch(() => {
+              document.getElementById('ocr-status').innerText = "❌ OCR Scan Failed.";
+          });
+  };
+
+  window.autoMapOCRText = (text) => {
+      ocrScannedItems = [];
+      const lines = text.split('\n');
+      lines.forEach(line => {
+          if(line.trim().length > 2) {
+              const lowerLine = line.toLowerCase();
+              let match = allProducts.find(p => lowerLine.includes(p.name.toLowerCase()));
+              ocrScannedItems.push({
+                  id: match ? match.id : 'ocr-' + Date.now() + Math.random(),
+                  name: match ? match.name : line.trim(),
+                  qty: 1,
+                  price: match ? match.price : 0,
+                  type: match ? (match.type || 'kg') : 'pcs'
+              });
+          }
+      });
+      renderOcrTable();
+  };
+
+  window.renderOcrTable = () => {
+      document.getElementById('ocr-results-container').style.display = 'block';
+      let html = '';
+      ocrScannedItems.forEach((item, i) => {
+          html += `<tr>
+              <td><input type="text" id="ocr-name-${i}" value="${item.name}"></td>
+              <td><input type="number" id="ocr-qty-${i}" value="${item.qty}" style="width:50px;"></td>
+              <td><input type="number" id="ocr-price-${i}" value="${item.price}" style="width:70px;"></td>
+              <td><button class="icon-btn btn-danger" style="padding:5px;" onclick="removeOcrItem(${i})">X</button></td>
+          </tr>`;
+      });
+      document.getElementById('ocr-table-body').innerHTML = html;
+  };
+
+  window.removeOcrItem = (i) => { ocrScannedItems.splice(i, 1); renderOcrTable(); };
+
+  window.moveOcrToCart = () => {
+      ocrScannedItems.forEach((item, i) => {
+          const name = document.getElementById(`ocr-name-${i}`).value;
+          const qty = parseFloat(document.getElementById(`ocr-qty-${i}`).value) || 1;
+          const price = parseFloat(document.getElementById(`ocr-price-${i}`).value) || 0;
+          
+          let matchedProd = allProducts.find(p => p.name.toLowerCase() === name.toLowerCase());
+          let prodId = matchedProd ? matchedProd.id : `custom-${Date.now()}-${i}`;
+          let type = matchedProd ? (matchedProd.type || 'kg') : 'pcs';
+
+          let existing = cart.find(c => c.id === prodId);
+          if(existing && matchedProd) {
+              existing.qty += qty;
+              existing.total = existing.qty * existing.price;
+          } else {
+              cart.push({ id: prodId, name: name, price: price, type: type, qty: qty, total: price * qty });
+          }
+      });
+      ocrScannedItems = [];
+      document.getElementById('ocr-results-container').style.display = 'none';
+      updateCartUI(); 
+  };
+
+  // --- 8. CART & WEIGHTS ---
+  window.openWeightModal = (prodId) => {
+    const prod = allProducts.find(p => p.id === prodId);
+    document.getElementById('current-prod-id-weight').value = prodId;
+    document.getElementById('weight-modal-product-info').innerText = `${prod.name} (₹${prod.price}/${prod.type || 'kg'})`;
+    
+    const existingIndex = cart.findIndex(item => item.id === prodId);
+    if(existingIndex !== -1) {
+      if(confirm(`⚠️ Item already in cart. Click OK to add one more.`)) {
+        cart[existingIndex].qty += 1;
+        cart[existingIndex].total = cart[existingIndex].qty * cart[existingIndex].price;
+        updateCartUI();
+        return; 
+      }
+    }
+    document.getElementById('qty-input').value = ''; 
+    openModal('weight-modal');
+    setTimeout(() => document.getElementById('qty-input').focus(), 100);
+  };
+
+  window.finalizeAddToCart = () => {
+    const prodId = document.getElementById('current-prod-id-weight').value;
+    const qty = parseFloat(document.getElementById('qty-input').value);
+    if(!qty || qty <= 0) return alert("⚠️ Enter valid quantity!");
+    
+    const prod = allProducts.find(p => p.id === prodId);
+    cart.push({ id: prodId, name: prod.name, price: prod.price, type: prod.type || 'kg', qty: qty, total: prod.price * qty });
+    updateCartUI();
+    closeModal('weight-modal');
+  };
+
+  function updateCartUI() {
+    let html = ''; cartTotal = 0;
+    cart.forEach((item, index) => {
+      cartTotal += item.total;
+      html += `
+        <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-bottom:5px; display:flex; justify-content:space-between;">
+          <span>✔️ ${item.name} (${item.qty}${item.type})</span>
+          <div>
+            <span style="color: var(--primary); font-weight:bold; margin-right:10px;">₹${item.total.toFixed(2)}</span>
+            <button class="icon-btn" onclick="cart.splice(${index},1); updateCartUI();" style="color:var(--danger);">🗑️</button>
+          </div>
+        </div>`;
+    });
+    document.getElementById('cart-list').innerHTML = html || "<i>Cart is empty.</i>";
+    document.getElementById('total-amount').innerText = cartTotal.toFixed(2);
+    document.getElementById('select-customer-btn').style.display = cart.length > 0 ? 'block' : 'none';
+    updateProductGridBadges();
+  }
+
+  function updateProductGridBadges() {
+    allProducts.forEach(p => {
+      const badge = document.getElementById(`cart-badge-${p.id}`);
+      if(!badge) return;
+      const cartItem = cart.find(i => i.id === p.id);
+      if(cartItem) { badge.innerText = cartItem.qty; badge.style.display = 'block'; }
+      else { badge.style.display = 'none'; }
+    });
+  }
+
+    // --- 9. CUSTOMERS ---
+  window.openCustomerModal = (mode, custId) => {
+    if(mode === 'add') {
+      document.getElementById('edit-cust-id').value = '';
+      document.getElementById('cust-name-modal').value = '';
+      document.getElementById('cust-phone-modal').value = '';
+    } else {
+      const c = allCustomers.find(cust => cust.id === custId);
+      document.getElementById('edit-cust-id').value = custId;
+      document.getElementById('cust-name-modal').value = c.customerName;
+      document.getElementById('cust-phone-modal').value = c.phone;
+    }
+    openModal('customer-modal');
+  };
+
+  window.saveCustomer = async () => {
+    const id = document.getElementById('edit-cust-id').value;
+    const name = document.getElementById('cust-name-modal').value.trim();
+    const phone = document.getElementById('cust-phone-modal').value.trim();
+    if(!name || phone.length < 10) return alert("⚠️ Enter Name and 10-digit Phone!");
+    try {
+      if(id) await updateDoc(doc(db, "customers", id), { customerName: name, phone });
+      else await addDoc(collection(db, "customers"), { userId: currentUserId, customerName: name, phone });
+      loadCustomers();
+      closeModal('customer-modal');
+    } catch(e) { alert("Failed to save customer"); }
+  };
+
+  window.loadCustomers = async () => {
+    try {
+      const q = query(collection(db, "customers"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      allCustomers = [];
+      let listHtml = ''; let billingListHtml = '';
+      
+      snapshot.forEach(doc => {
+        const c = doc.data();
+        allCustomers.push({ id: doc.id, ...c });
+        listHtml += `
+          <div style="display:flex; justify-content:space-between; background:rgba(0,0,0,0.3); padding:10px; border-radius:8px; margin-bottom:5px;">
+            <div>👤 ${c.customerName} <br><small>📞 ${c.phone}</small></div>
+            <button class="icon-btn" onclick="openCustomerModal('edit', '${doc.id}')">📝</button>
+          </div>`;
+        billingListHtml += `<button onclick="selectCustomerForBill('${doc.id}')" style="text-align:left; background:rgba(255,255,255,0.05); margin-bottom:5px;">👤 ${c.customerName} (${c.phone})</button>`;
+      });
+      document.getElementById('customers-list').innerHTML = listHtml;
+      document.getElementById('billing-customer-list').innerHTML = billingListHtml;
+    } catch (error) { console.error(error); }
+  };
+
+  window.selectCustomerForBill = (custId) => {
+    currentBillingCustomer = allCustomers.find(c => c.id === custId);
+    closeModal('select-customer-modal');
+    renderBillPreview();
+    openModal('preview-modal');
+  };
+
+  // --- 10. BILL PREVIEW ---
+ function renderBillPreview() {
+    const pDateStr = new Date().toLocaleDateString('en-IN');
+    const dDateStr = new Date(); dDateStr.setDate(dDateStr.getDate() + 15);
+    
+    let itemsHtml = '';
+    cart.forEach(item => {
+      itemsHtml += `<div class="bill-item-row">
+                      <span>${item.name} (${item.qty}${item.type})</span>
+                      <span>₹${item.total.toFixed(2)}</span>
+                    </div>`;
+    });
+    
+    let shopInfoHtml = '';
+    if(shopDetails.shopName) {
+      shopInfoHtml = `<h2 style="margin:0; color:var(--primary);">${shopDetails.shopName.toUpperCase()}</h2>
+                      <p style="margin:5px 0; font-size:0.9rem;">${shopDetails.ownerName || ''} | 📞 ${shopDetails.phoneNumber || ''}</p>`;
+    } else { shopInfoHtml = `<h3>SHOP NOT SET (Edit Options)</h3>`; }
+    
+    document.getElementById('bill-preview-container').innerHTML = `
+        <div id="bill-preview-header">
+          ${shopInfoHtml}
+        </div>
+        <div style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-bottom:10px;">
+          <span style="color:var(--primary);">👤 Cust:</span> <b>${currentBillingCustomer.customerName}</b><br>
+          <span style="color:var(--primary);">📞 Ph:</span> ${currentBillingCustomer.phone}<br>
+          <span style="color:var(--primary);">📅 Date:</span> ${pDateStr} | <span style="color:var(--warning);">⏳ Due:</span> ${dDateStr.toLocaleDateString('en-IN')}
+        </div>
+        <div style="min-height: 100px;">
+          ${itemsHtml}
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-top:15px; border-top: 1px dashed var(--primary); padding-top:10px; font-weight:bold; font-size:1.2rem; color: var(--primary);">
+          <span>TOTAL:</span>
+          <span>₹${cartTotal.toFixed(2)}</span>
+        </div>
+        <div style="text-align:center;" id="qr-code-wrapper"></div>`;
+
+    if(shopDetails.upiId) {
+      setTimeout(() => {
+        const upiString = `upi://pay?pa=${shopDetails.upiId}&pn=${encodeURIComponent(shopDetails.shopName || 'Shop')}&am=${cartTotal.toFixed(2)}&cu=INR`;
+        const wrapper = document.getElementById('qr-code-wrapper');
+        wrapper.innerHTML = `<div id="qr-code-container"></div><p style="font-size:0.8rem; margin:5px 0 0 0; color:#ccc;">Scan to Pay</p>`;
+        new QRCode(document.getElementById("qr-code-container"), {
+            text: upiString,
+            width: 120, height: 120,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+      }, 100);
+    }
+  }
+  
+  window.downloadBillImage = async () => {
+    const element = document.getElementById('bill-preview-container');
+    const custName = currentBillingCustomer.customerName.replace(/\s+/g, '_');
+    try {
+      const canvas = await html2canvas(element, { backgroundColor: "#0d1b2a", scale: 2 });
+      const url = canvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Bill_${custName}_${new Date().getTime()}.png`;
+      a.click();
+      alert("✅ Downloading Bill Image to Gallery.");
+    } catch(e) { alert("Failed to generate image."); }
+  };
+
+  window.sendWhatsAppBill = async () => {
+    const pDate = new Date();
+    const dDate = new Date(); dDate.setDate(pDate.getDate() + 15);
+    try {
+      await addDoc(collection(db, "bills"), {
+        userId: currentUserId, customerName: currentBillingCustomer.customerName, phone: currentBillingCustomer.phone,
+        items: cart, totalAmount: cartTotal, purchaseDate: pDate.toISOString(), dueDate: dDate.toISOString(), status: 'unpaid'
+      });
+      loadBills();
+    } catch(e) { console.error(e); }
+
+    const shopName = shopDetails.shopName || "Sri Venkateswara";
+    let msg = `🧾 *${shopName.toUpperCase()} BILL*\n📅 ${pDate.toLocaleDateString('en-IN')}\n\n👤 Cust: *${currentBillingCustomer.customerName}*\n--------------------------\n`;
+    cart.forEach(item => { msg += `📦 *${item.name}* (${item.qty}${item.type}) ➔ ₹${item.total.toFixed(2)}\n`; });
+    msg += `--------------------------\n💰 *TOTAL : ₹${cartTotal.toFixed(2)}*\n\n⏳ *Due:* ${dDate.toLocaleDateString('en-IN')}\n`;
+    
+    if(shopDetails.upiId) {
+      const upiLink = `upi://pay?pa=${shopDetails.upiId}&pn=${encodeURIComponent(shopName)}&am=${cartTotal.toFixed(2)}&cu=INR`;
+      msg += `\n⚡ *Pay via UPI:*\n${upiLink}\n`;
+    }
+    window.open(`https://wa.me/91${currentBillingCustomer.phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    closeModal('preview-modal'); resetBilling();
+  };
+  
+  function resetBilling() { cart = []; updateCartUI(); currentBillingCustomer = null; }
+
+  // --- 11. REMINDERS & PIN DELETE ---
+  window.loadBills = async () => {
+    try {
+      const q = query(collection(db, "bills"), where("userId", "==", currentUserId));
+      const snapshot = await getDocs(q);
+      allBills = [];
+      snapshot.forEach(doc => allBills.push({ id: doc.id, ...doc.data() }));
+      allBills.sort((a,b) => new Date(b.purchaseDate) - new Date(a.purchaseDate));
+      
+      let dueHtml = ''; let allHtml = '';
+      const today = new Date();
+      
+      allBills.forEach(bill => {
+        const dDate = new Date(bill.dueDate);
+        const pDate = new Date(bill.purchaseDate);
+        
+        allHtml += `<tr><td>${pDate.toLocaleDateString('en-IN')}</td><td><b>${bill.customerName}</b></td><td>₹${bill.totalAmount.toFixed(2)}</td><td>${bill.status === 'paid' ? '✔️' : '❌'}</td></tr>`;
+        
+        if(bill.status === 'unpaid') {
+          const daysLeft = Math.ceil((dDate - today) / (1000 * 60 * 60 * 24));
+          const isUrgent = daysLeft <= 5 && daysLeft >= 0;
+          dueHtml += `
+            <tr class="${isUrgent ? 'urgent-row' : ''}">
+              <td><b>${bill.customerName}</b></td>
+              <td style="color:var(--primary); font-weight:bold;">₹${bill.totalAmount.toFixed(2)}</td>
+              <td>${dDate.toLocaleDateString('en-IN')} ${isUrgent ? `<br><small style="color:red;">⚠️ ${daysLeft} Days</small>` : ''}</td>
+              <td><label class="switch"><input type="checkbox" onchange="toggleBillStatus('${bill.id}', this.checked)"><span class="slider"></span></label></td>
+              <td>
+                <button class="icon-btn" style="color:var(--warning);" onclick="sendReminderWhatsApp('${bill.customerName}', '${bill.phone}', ${bill.totalAmount}, '${dDate.toISOString()}', ${isUrgent})">💬</button>
+                <button class="icon-btn" style="color:var(--danger);" onclick="deleteBill('${bill.id}')">🗑️</button>
+              </td>
+            </tr>`;
+        }
+      });
+      document.getElementById('due-bills-list').innerHTML = dueHtml || '<tr><td colspan="5">No Pending Bills 🎉</td></tr>';
+      document.getElementById('all-bills-list').innerHTML = allHtml || '<tr><td colspan="4">No bills yet.</td></tr>';
+    } catch (e) { console.error(e); }
+  };
+
+  window.toggleBillStatus = async (id, isChecked) => {
+    await updateDoc(doc(db, "bills", id), { status: isChecked ? 'paid' : 'unpaid' }); loadBills();
+  };
+  
+  // MODIFIED FOR PIN SECURITY
+  window.deleteBill = async (id) => {
+    let pin = localStorage.getItem('svDeletePin');
+    if(!pin) {
+        let setPin = prompt("🔒 Security Setup: Set a 4-digit PIN for deleting bills:");
+        if(setPin && setPin.length >= 4) {
+            localStorage.setItem('svDeletePin', setPin);
+            alert("✅ PIN saved successfully! Please try deleting the bill again.");
         } else {
-            alert("Please fill all details to login.");
+            alert("❌ Invalid PIN setup canceled.");
         }
+        return;
     }
 
-    function logout() {
-        localStorage.removeItem('svUser');
-        location.reload();
-    }
-
-    function updateUserMenu() {
-        document.getElementById('displayUserInfo').innerText = `Admin: ${currentUser.name} | Loc: ${currentUser.loc}`;
-    }
-
-    // --- UI NAVIGATION ---
-    function showSection(id) {
-        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active-section'));
-        document.getElementById(id).classList.add('active-section');
-        if(id === 'inventory') renderInventory();
-        if(id === 'customers') renderCustomers();
-        if(id === 'history') renderHistory();
-    }
-
-    // --- INVENTORY LOGIC ---
-    function addProduct() {
-        let name = document.getElementById('prodName').value.trim();
-        let price = parseFloat(document.getElementById('prodPrice').value);
-        if(name && price) {
-            products.push({name: name.toLowerCase(), price: price});
-            localStorage.setItem('svProducts', JSON.stringify(products));
-            renderInventory();
+    let enteredPin = prompt("🔒 Enter your PIN to delete this bill:");
+    if(enteredPin === pin) {
+        if(confirm("🗑️ Are you sure you want to permanently delete this bill?")) {
+            await deleteDoc(doc(db, "bills", id)); 
+            loadBills();
         }
+    } else {
+        alert("❌ Incorrect PIN! Deletion denied.");
     }
+  };
 
-    function renderInventory(filter = "") {
-        let tbody = document.getElementById('inventoryBody');
-        tbody.innerHTML = '';
-        products.forEach((p, i) => {
-            if(p.name.includes(filter.toLowerCase())) {
-                tbody.innerHTML += `<tr><td>${p.name.toUpperCase()}</td><td>₹${p.price}</td><td><button class="danger-btn" onclick="deleteProduct(${i})">X</button></td></tr>`;
-            }
-        });
-    }
+  window.sendReminderWhatsApp = (name, phone, amount, dueDateIso, isUrgent) => {
+    const msg = `🙏 Namaste *${name}* garu,\nOur Shop reminder. *₹${amount}* bill pending. Due date: *${new Date(dueDateIso).toLocaleDateString('en-IN')}*.\n${isUrgent ? `⚠️ *Last 5 Days:* Pay soon.\n` : ''}`;
+    window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
 
-    function deleteProduct(i) { products.splice(i,1); localStorage.setItem('svProducts', JSON.stringify(products)); renderInventory(); }
-    function filterInventory() { renderInventory(document.getElementById('prodSearch').value); }
-
-    // --- CUSTOMER LOGIC ---
-    function saveCustomer(name, mobile) {
-        let exists = customers.find(c => c.mobile === mobile);
-        if(!exists && name && mobile) {
-            customers.push({ name, mobile, billCount: 1 });
-        } else if (exists) {
-            exists.billCount += 1;
-        }
-        localStorage.setItem('svCustomers', JSON.stringify(customers));
-    }
-
-    function renderCustomers(filter = "") {
-        let tbody = document.getElementById('customersBody');
-        tbody.innerHTML = '';
-        customers.forEach(c => {
-            if(c.name.toLowerCase().includes(filter.toLowerCase()) || c.mobile.includes(filter)) {
-                tbody.innerHTML += `<tr><td>${c.name}</td><td>${c.mobile}</td><td>${c.billCount}</td></tr>`;
-            }
-        });
-    }
-    function filterCustomers() { renderCustomers(document.getElementById('custSearch').value); }
-
-    // --- CAMERA & OCR ---
-    let videoStream;
-    function startCamera() {
-        document.getElementById('video-container').style.display = 'block';
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-            .then(stream => { videoStream = stream; document.getElementById('video').srcObject = stream; })
-            .catch(err => alert("Camera error: " + err));
-    }
-
-    function stopCamera() {
-        if(videoStream) videoStream.getTracks().forEach(track => track.stop());
-        document.getElementById('video-container').style.display = 'none';
-    }
-
-    function captureImage() {
-        let video = document.getElementById('video');
-        let canvas = document.getElementById('canvas');
-        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
-        stopCamera();
-        processOCR(canvas.toDataURL('image/png'));
-    }
-
-    function processOCR(imageData) {
-        document.getElementById('ocr-status').innerText = "⏳ Scanning Text... Please wait.";
-        Tesseract.recognize(imageData, 'eng')
-            .then(({ data: { text } }) => {
-                document.getElementById('ocr-status').innerText = "✅ Scan Complete!";
-                autoMapOCRText(text);
-            }).catch(() => document.getElementById('ocr-status').innerText = "❌ OCR Failed.");
-    }
-
-    function autoMapOCRText(text) {
-        ocrScannedItems = [];
-        text.split('\n').forEach(line => {
-            if(line.trim().length > 2) {
-                let match = products.find(p => line.toLowerCase().includes(p.name));
-                ocrScannedItems.push({
-                    name: match ? match.name.toUpperCase() : line.trim(),
-                    weight: "1",
-                    price: match ? match.price : 0
-                });
-            }
-        });
-        renderOcrTable();
-    }
-
-    function renderOcrTable() {
-        document.getElementById('ocr-results').style.display = 'block';
-        let tbody = document.getElementById('ocrTableBody');
-        tbody.innerHTML = '';
-        ocrScannedItems.forEach((item, i) => {
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="text" id="ocrName_${i}" value="${item.name}"></td>
-                    <td><input type="text" id="ocrWeight_${i}" value="${item.weight}"></td>
-                    <td><input type="number" id="ocrPrice_${i}" value="${item.price}"></td>
-                    <td><button class="danger-btn" onclick="removeOcrItem(${i})">X</button></td>
-                </tr>`;
-        });
-    }
-
-    function removeOcrItem(i) { ocrScannedItems.splice(i, 1); renderOcrTable(); }
-
-    function moveOcrToFinalBill() {
-        ocrScannedItems.forEach((item, i) => {
-            currentFinalBill.push({
-                name: document.getElementById(`ocrName_${i}`).value,
-                weight: document.getElementById(`ocrWeight_${i}`).value,
-                price: parseFloat(document.getElementById(`ocrPrice_${i}`).value) || 0
-            });
-        });
-        document.getElementById('ocr-results').style.display = 'none';
-        renderFinalBill();
-    }
-
-    // --- MANUAL BILLING ---
-    function addManualRow() {
-        currentFinalBill.push({ name: "New Item", weight: "1", price: 0 });
-        renderFinalBill();
-    }
-
-    function renderFinalBill() {
-        let tbody = document.getElementById('finalBillBody');
-        let total = 0;
-        tbody.innerHTML = '';
-        currentFinalBill.forEach((item, i) => {
-            total += item.price;
-            tbody.innerHTML += `
-                <tr>
-                    <td><input type="text" value="${item.name}" onchange="updateFinalBill(${i}, 'name', this.value)"></td>
-                    <td><input type="text" value="${item.weight}" onchange="updateFinalBill(${i}, 'weight', this.value)"></td>
-                    <td><input type="number" value="${item.price}" onchange="updateFinalBill(${i}, 'price', this.value)"></td>
-                    <td><button class="danger-btn" onclick="removeFinalItem(${i})">X</button></td>
-                </tr>`;
-        });
-        document.getElementById('billTotal').innerText = total;
-    }
-
-    function updateFinalBill(index, field, value) {
-        currentFinalBill[index][field] = field === 'price' ? parseFloat(value) : value;
-        renderFinalBill();
-    }
-    function removeFinalItem(i) { currentFinalBill.splice(i, 1); renderFinalBill(); }
-
-    // --- GENERATE BILL & QR ---
-    function generateBill() {
-        if(currentFinalBill.length === 0) return alert("No items in bill!");
-        
-        let custName = document.getElementById('billCustName').value.trim() || "Walk-in";
-        let custMobile = document.getElementById('billCustMobile').value.trim();
-        let dueDate = document.getElementById('billDueDate').value;
-        let totalAmount = document.getElementById('billTotal').innerText;
-        let billId = "SVB-" + Math.floor(Math.random() * 10000);
-        
-        // Generate QR
-        document.getElementById('qrcode').innerHTML = "";
-        new QRCode(document.getElementById('qrcode'), { 
-            text: `upi://pay?pa=yourmerchant@upi&pn=SriVenkateswara&am=${totalAmount}&cu=INR`, 
-            width: 128, height: 128 
-        });
-
-        // Save Customer & Bill
-        saveCustomer(custName, custMobile);
-        billsHistory.push({
-            id: billId, custName, custMobile, date: new Date().toLocaleDateString(), dueDate,
-            total: parseFloat(totalAmount), items: currentFinalBill
-        });
-        localStorage.setItem('svBills', JSON.stringify(billsHistory));
-        
-        alert("Bill Generated!");
-        currentFinalBill = [];
-        renderFinalBill();
-    }
-
-    // --- HISTORY, EDIT, DELETE (PIN) & WHATSAPP REMINDERS ---
-    function renderHistory() {
-        let tbody = document.getElementById('historyBody');
-        tbody.innerHTML = '';
-        billsHistory.forEach((bill, i) => {
-            let dueText = bill.dueDate ? `<br><small style="color:red">Due: ${bill.dueDate}</small>` : '';
-            tbody.innerHTML += `
-                <tr>
-                    <td>${bill.id}</td>
-                    <td>${bill.custName}<br><small>${bill.custMobile}</small></td>
-                    <td>${bill.date} ${dueText}</td>
-                    <td>
-                        ₹<input type="number" id="editAmt_${i}" value="${bill.total}" style="width:70px;">
-                        <button class="success-btn" onclick="updateAmount(${i})" style="padding:4px; font-size:12px;">Save</button>
-                    </td>
-                    <td>
-                        <button onclick="downloadBill(${i})">⬇️ Dwnld</button>
-                        ${bill.custMobile && bill.dueDate ? `<button class="wa-btn" onclick="sendReminder(${i})">🟢 WA</button>` : ''}
-                        <button class="danger-btn" onclick="deleteBill(${i})">🗑️ Del</button>
-                    </td>
-                </tr>`;
-        });
-    }
-
-    function updateAmount(i) {
-        billsHistory[i].total = parseFloat(document.getElementById(`editAmt_${i}`).value);
-        localStorage.setItem('svBills', JSON.stringify(billsHistory));
-        alert("Amount Updated!");
-    }
-
-    function deleteBill(i) {
-        let pin = localStorage.getItem('svDeletePin');
-        if(!pin) {
-            let setPin = prompt("Set a 4-digit PIN for deleting bills:");
-            if(setPin && setPin.length >= 4) { localStorage.setItem('svDeletePin', setPin); alert("PIN saved! Try deleting again."); }
-            return;
-        }
-        if(prompt("Enter PIN to delete:") === pin) {
-            billsHistory.splice(i, 1);
-            localStorage.setItem('svBills', JSON.stringify(billsHistory));
-            renderHistory();
-        } else {
-            alert("❌ Incorrect PIN!");
-        }
-    }
-
-    function sendReminder(i) {
-        let bill = billsHistory[i];
-        // 5 Days calculation can be added here, this directly sends the message
-        let text = `Hello ${bill.custName}, gentle reminder from Sri Venkateswara Shop. Your pending bill amount is Rs.${bill.total}/- due on ${bill.dueDate}. Please clear it soon.`;
-        window.open(`https://wa.me/91${bill.custMobile}?text=${encodeURIComponent(text)}`, '_blank');
-    }
-
-    function downloadBill(i) {
-        let bill = billsHistory[i];
-        let content = `Sri Venkateswara Shop\nBill ID: ${bill.id}\nCustomer: ${bill.custName}\nDate: ${bill.date}\n\nItems:\n`;
-        bill.items.forEach(it => { content += `${it.name} - ${it.weight} - Rs.${it.price}\n`; });
-        content += `\nTotal: Rs.${bill.total}`;
-        
-        let blob = new Blob([content], { type: "text/plain" });
-        let link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `${bill.id}.txt`;
-        link.click();
-    }
 </script>
-
 </body>
 </html>
