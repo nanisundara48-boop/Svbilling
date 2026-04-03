@@ -43,6 +43,12 @@
       0% { opacity: 0; transform: translateY(30px) scale(0.95); }
       100% { opacity: 1; transform: translateY(0) scale(1); }
     }
+    
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 229, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); }
+    }
 
     .app-container {
       width: 100%;
@@ -66,7 +72,7 @@
       padding: 10px 15px;
       margin-bottom: 20px;
       position: relative;
-      z-index: 10000; /* Z-Index Fix */
+      z-index: 10000;
     }
 
     .header-icons { display: flex; gap: 15px; align-items: center; font-size: 1.2rem; }
@@ -130,6 +136,8 @@
     .btn-danger { background: var(--danger); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-warning { background: var(--warning); color: #000; }
+    
+    .voice-active-btn { animation: pulse 1.5s infinite; background: var(--danger) !important; color: white !important; }
 
     /* --- PRODUCT GRID --- */
     .product-grid {
@@ -211,7 +219,6 @@
 
     #dashboard { display: none; }
 
-    /* New Camera & OCR Styles */
     #camera-container { display: none; text-align: center; margin-top: 15px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 12px; }
     #camera-video { width: 100%; border-radius: 12px; border: 2px solid var(--primary); }
     .ocr-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
@@ -280,10 +287,18 @@
         <div class="glass-card">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
             <h3 style="margin:0;">🧾 Create New Bill</h3>
-            <button style="width:auto; padding: 8px 12px; background:#a855f7; margin:0;" onclick="startCamera()">📷 Smart Scan</button>
+            <div style="display:flex; gap: 5px;">
+                <button id="voice-btn" style="width:auto; padding: 8px 12px; margin:0;" onclick="toggleVoiceRecognition()">🎙️ Voice</button>
+                <button style="width:auto; padding: 8px 12px; background:#a855f7; margin:0;" onclick="startCamera()">📷 Scan</button>
+            </div>
           </div>
           
-          <p style="font-size:0.9rem; color:#ccc;">Step 1: Click products or Scan bill to add.</p>
+          <div id="voice-preview-box" style="display:none; background: rgba(0, 229, 255, 0.1); padding: 10px; border-radius: 8px; border: 1px dashed var(--primary); margin-bottom: 10px;">
+              <p style="margin: 0; font-size: 0.85rem; color: #ccc;">Listening: <span id="voice-transcript" style="color:white; font-weight:bold;">...</span></p>
+              <p id="voice-status" style="margin: 5px 0 0 0; font-weight: bold; font-size: 0.85rem; display: none;"></p>
+          </div>
+          
+          <p style="font-size:0.9rem; color:#ccc;">Step 1: Click products, Use Voice, or Scan bill to add.</p>
           
           <div id="camera-container">
             <video id="camera-video" autoplay></video>
@@ -458,7 +473,6 @@
   let currentBillingCustomer = null;
   let allBills = [];
 
-  // --- NEW VARIABLES FOR CAMERA OCR ---
   let cameraStream = null;
   let ocrScannedItems = [];
 
@@ -662,7 +676,127 @@
     } catch (error) { console.error(error); }
   };
 
-  // --- NEW: CAMERA & OCR LOGIC ---
+  // --- 7.5 NEW VOICE COMMAND BILLING FEATURE ---
+  let speechRecognition;
+  let isVoiceActive = false;
+
+  if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+      speechRecognition = new SpeechRec();
+      speechRecognition.continuous = false; // Processes 1 command naturally (e.g. "2 kilos sugar")
+      speechRecognition.interimResults = true; // For Live Preview
+      speechRecognition.lang = 'en-IN'; // Works for Indian Accents & Telugu Mix
+
+      speechRecognition.onstart = () => {
+          isVoiceActive = true;
+          const btn = document.getElementById('voice-btn');
+          btn.innerHTML = "🛑 Stop";
+          btn.classList.add("voice-active-btn");
+          document.getElementById('voice-preview-box').style.display = "block";
+          document.getElementById('voice-transcript').innerText = "Listening...";
+          document.getElementById('voice-status').style.display = "none";
+      };
+
+      speechRecognition.onresult = (event) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+              if (event.results[i].isFinal) {
+                  finalTranscript += event.results[i][0].transcript;
+              } else {
+                  interimTranscript += event.results[i][0].transcript;
+              }
+          }
+
+          document.getElementById('voice-transcript').innerText = finalTranscript || interimTranscript;
+
+          if (finalTranscript) {
+              processVoiceCommandLogic(finalTranscript);
+          }
+      };
+
+      speechRecognition.onerror = (event) => {
+          stopVoice();
+          showVoiceStatusMsg("❌ Error: " + event.error, "var(--danger)");
+      };
+
+      speechRecognition.onend = () => { stopVoice(); };
+  }
+
+  window.toggleVoiceRecognition = () => {
+      if (!speechRecognition) return alert("⚠️ Voice Recognition not supported in this browser. Try Chrome.");
+      if (isVoiceActive) speechRecognition.stop();
+      else speechRecognition.start();
+  };
+
+  function stopVoice() {
+      isVoiceActive = false;
+      const btn = document.getElementById('voice-btn');
+      btn.innerHTML = "🎙️ Voice";
+      btn.classList.remove("voice-active-btn");
+  }
+
+  function showVoiceStatusMsg(msg, color) {
+      const statusEl = document.getElementById('voice-status');
+      statusEl.innerText = msg;
+      statusEl.style.color = color;
+      statusEl.style.display = "block";
+      setTimeout(() => { 
+          statusEl.style.display = "none"; 
+          document.getElementById('voice-preview-box').style.display = "none";
+      }, 4000);
+  }
+
+  window.processVoiceCommandLogic = (text) => {
+      text = text.toLowerCase().trim();
+      if(!text) return;
+
+      // 1. Search for Item Name in the spoken text
+      let matchedProduct = null;
+      for (let p of allProducts) {
+          if (text.includes(p.name.toLowerCase())) {
+              matchedProduct = p;
+              break; 
+          }
+      }
+
+      if (!matchedProduct) {
+          showVoiceStatusMsg("❌ Item not found in products list.", "var(--danger)");
+          return;
+      }
+
+      // 2. Extract Number/Quantity (e.g., "500", "2.5")
+      let qtyMatch = text.match(/(\d+(?:\.\d+)?)/);
+      let qty = qtyMatch ? parseFloat(qtyMatch[1]) : 1; 
+
+      // 3. Check for Grams to do conversion logic
+      let calculatedQty = qty;
+      let isGrams = /\b(grams?|gms?|g)\b/.test(text); // Regex to safely check grams
+      
+      if (matchedProduct.type === 'kg' && isGrams) {
+          calculatedQty = qty / 1000; // Auto convert grams to kg cost
+      }
+
+      // 4. Cost Calculation & Add to Cart
+      let totalCost = matchedProduct.price * calculatedQty;
+
+      let existingIndex = cart.findIndex(item => item.id === matchedProduct.id);
+      if(existingIndex !== -1) {
+          cart[existingIndex].qty += calculatedQty;
+          cart[existingIndex].total = cart[existingIndex].qty * cart[existingIndex].price;
+      } else {
+          cart.push({ 
+              id: matchedProduct.id, name: matchedProduct.name, price: matchedProduct.price, 
+              type: matchedProduct.type || 'kg', qty: calculatedQty, total: totalCost 
+          });
+      }
+
+      updateCartUI();
+      showVoiceStatusMsg(`✅ Added: ${matchedProduct.name} - ${calculatedQty}${matchedProduct.type} (₹${totalCost.toFixed(2)})`, "var(--success)");
+  };
+
+  // --- 8. CAMERA & OCR LOGIC ---
   window.startCamera = () => {
       document.getElementById('camera-container').style.display = 'block';
       navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
@@ -706,50 +840,23 @@
           });
   };
 
-    window.autoMapOCRText = (text) => {
+  window.autoMapOCRText = (text) => {
       ocrScannedItems = [];
       const lines = text.split('\n');
-
       lines.forEach(line => {
-          // 1. Remove special characters and garbage symbols. Keep only letters, numbers, and spaces.
-          let cleanLine = line.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-
-          // 2. Only process if the line has at least 3 characters and contains alphabets
-          if(cleanLine.length > 2 && /[a-zA-Z]/.test(cleanLine)) {
-              const lowerLine = cleanLine.toLowerCase();
-              
-              // 3. Check if this line matches any product in our inventory
+          if(line.trim().length > 2) {
+              const lowerLine = line.toLowerCase();
               let match = allProducts.find(p => lowerLine.includes(p.name.toLowerCase()));
-
-              if (match) {
-                  // If it perfectly matches our product, add it automatically
-                  ocrScannedItems.push({
-                      id: match.id,
-                      name: match.name,
-                      qty: 1,
-                      price: match.price,
-                      type: match.type || 'kg'
-                  });
-              } else if (cleanLine.length > 3) {
-                  // If no exact match, but it's a valid readable word (no garbage), add it for manual review
-                  ocrScannedItems.push({
-                      id: 'ocr-' + Date.now() + Math.random(),
-                      name: cleanLine, 
-                      qty: 1,
-                      price: 0,
-                      type: 'pcs'
-                  });
-              }
+              ocrScannedItems.push({
+                  id: match ? match.id : 'ocr-' + Date.now() + Math.random(),
+                  name: match ? match.name : line.trim(),
+                  qty: 1,
+                  price: match ? match.price : 0,
+                  type: match ? (match.type || 'kg') : 'pcs'
+              });
           }
       });
-
-      // If nothing useful was found after filtering
-      if (ocrScannedItems.length === 0) {
-          alert("⚠️ Could not find any readable items or matching products. Please try scanning a clearer bill.");
-          document.getElementById('ocr-results-container').style.display = 'none';
-      } else {
-          renderOcrTable();
-      }
+      renderOcrTable();
   };
 
   window.renderOcrTable = () => {
@@ -791,7 +898,7 @@
       updateCartUI(); 
   };
 
-  // --- 8. CART & WEIGHTS ---
+  // --- 9. CART & WEIGHTS ---
   window.openWeightModal = (prodId) => {
     const prod = allProducts.find(p => p.id === prodId);
     document.getElementById('current-prod-id-weight').value = prodId;
@@ -851,7 +958,7 @@
     });
   }
 
-    // --- 9. CUSTOMERS ---
+  // --- 10. CUSTOMERS ---
   window.openCustomerModal = (mode, custId) => {
     if(mode === 'add') {
       document.getElementById('edit-cust-id').value = '';
@@ -908,7 +1015,7 @@
     openModal('preview-modal');
   };
 
-  // --- 10. BILL PREVIEW ---
+  // --- 11. BILL PREVIEW ---
  function renderBillPreview() {
     const pDateStr = new Date().toLocaleDateString('en-IN');
     const dDateStr = new Date(); dDateStr.setDate(dDateStr.getDate() + 15);
@@ -1000,7 +1107,7 @@
   
   function resetBilling() { cart = []; updateCartUI(); currentBillingCustomer = null; }
 
-  // --- 11. REMINDERS & PIN DELETE ---
+  // --- 12. REMINDERS & PIN DELETE ---
   window.loadBills = async () => {
     try {
       const q = query(collection(db, "bills"), where("userId", "==", currentUserId));
@@ -1043,7 +1150,6 @@
     await updateDoc(doc(db, "bills", id), { status: isChecked ? 'paid' : 'unpaid' }); loadBills();
   };
   
-  // MODIFIED FOR PIN SECURITY
   window.deleteBill = async (id) => {
     let pin = localStorage.getItem('svDeletePin');
     if(!pin) {
